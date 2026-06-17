@@ -160,7 +160,7 @@ export default function SkillsTraining() {
       {/* Header */}
       <section
         ref={headerRef}
-        className="relative py-16 lg:py-20 bg-gradient-to-b from-navy-900/50 to-navy-950 border-b border-white/5"
+        className="relative py-16 lg:py-20 bg-muted/40 border-b border-border"
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div
@@ -173,10 +173,10 @@ export default function SkillsTraining() {
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
               Free Training Programs
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Skills <span className="text-gradient-teal">Training</span>
             </h1>
-            <p className="text-slate-400 max-w-2xl text-base">
+            <p className="text-muted-foreground max-w-2xl text-base">
               AI-curated training programs designed to prepare you for international
               opportunities. All courses are free or heavily subsidized with recognized certifications.
             </p>
@@ -185,13 +185,13 @@ export default function SkillsTraining() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-10 border-b border-white/5" ref={statsRef}>
+      <section className="py-10 border-b border-border" ref={statsRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {featuredStats.map((stat, i) => (
               <div
                 key={stat.label}
-                className="flex items-center gap-3 p-4 rounded-xl bg-surface-elevated border border-white/5"
+                className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border"
                 style={{
                   opacity: statsVisible ? 1 : 0,
                   transform: statsVisible ? 'translateY(0)' : 'translateY(16px)',
@@ -202,8 +202,8 @@ export default function SkillsTraining() {
                   <stat.icon className="w-5 h-5 text-brand-teal" />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-white">{stat.value}</div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  <div className="text-lg font-bold text-foreground">{stat.value}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export default function SkillsTraining() {
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-medium whitespace-nowrap transition-all duration-200 ${
                   activeCategory === cat.id
                     ? 'bg-brand-teal/15 text-brand-teal border border-brand-teal/20'
-                    : 'bg-white/5 text-slate-400 border border-white/5 hover:border-white/15'
+                    : 'bg-muted/50 text-muted-foreground border border-border hover:border-border'
                 }`}
               >
                 <cat.icon className="w-4 h-4" />
@@ -239,7 +239,7 @@ export default function SkillsTraining() {
             {filteredCourses.map((course, i) => (
               <div
                 key={course.id}
-                className="group rounded-2xl bg-surface-elevated border border-white/5 hover:border-brand-teal/20 overflow-hidden transition-all duration-500 hover:-translate-y-1"
+                className="group rounded-2xl bg-card border border-border hover:border-brand-teal/20 overflow-hidden transition-all duration-500 hover:-translate-y-1"
                 style={{
                   animation: `fadeInUp 0.5s ease ${i * 0.06}s both`,
                 }}
@@ -251,7 +251,7 @@ export default function SkillsTraining() {
                     alt={course.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className="px-2 py-1 rounded-md bg-black/50 backdrop-blur-sm text-[10px] text-white font-medium">
                       {course.duration}
@@ -282,15 +282,15 @@ export default function SkillsTraining() {
                     <span className="text-[10px] text-brand-teal font-medium uppercase tracking-wider">
                       {categories.find(c => c.id === course.category)?.label}
                     </span>
-                    <span className="text-slate-700">|</span>
-                    <span className="text-[10px] text-slate-500">{course.level}</span>
+                    <span className="text-border">|</span>
+                    <span className="text-[10px] text-muted-foreground">{course.level}</span>
                   </div>
 
-                  <h3 className="text-base font-semibold text-slate-100 mb-2 group-hover:text-brand-teal transition-colors line-clamp-2">
+                  <h3 className="text-base font-semibold text-card-foreground mb-2 group-hover:text-brand-teal transition-colors line-clamp-2">
                     {course.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 leading-relaxed mb-4 line-clamp-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4 line-clamp-2">
                     {course.description}
                   </p>
 
@@ -299,21 +299,21 @@ export default function SkillsTraining() {
                     {course.skills.slice(0, 3).map(skill => (
                       <span
                         key={skill}
-                        className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] text-slate-400 border border-white/5"
+                        className="px-2 py-0.5 rounded-md bg-muted/50 text-[10px] text-muted-foreground border border-border"
                       >
                         {skill}
                       </span>
                     ))}
                     {course.skills.length > 3 && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] text-slate-500">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] text-muted-foreground">
                         +{course.skills.length - 3}
                       </span>
                     )}
                   </div>
 
                   {/* Meta */}
-                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {course.enrolled.toLocaleString()}
@@ -343,13 +343,13 @@ export default function SkillsTraining() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 lg:py-20 bg-navy-900/30">
+      <section className="py-16 lg:py-20 bg-muted/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-3 block">
               Simple Process
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               How <span className="text-gradient">Training</span> Works
             </h2>
           </div>
@@ -383,7 +383,7 @@ export default function SkillsTraining() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="relative p-6 rounded-2xl bg-surface-elevated border border-white/5 text-center group hover:border-brand-gold/20 transition-all duration-500"
+                className="relative p-6 rounded-2xl bg-card border border-border text-center group hover:border-brand-gold/20 transition-all duration-500"
               >
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-brand-gold/10 border border-brand-gold/20">
                   <span className="text-[10px] font-bold text-brand-gold">
@@ -393,17 +393,17 @@ export default function SkillsTraining() {
                 <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-brand-gold/20 transition-colors">
                   <item.icon className="w-5 h-5 text-brand-gold" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-100 mb-2">
+                <h3 className="text-sm font-semibold text-card-foreground mb-2">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Locked Premium Section */}
+      {/* Locked Premium Section — intentionally always dark */}
       <section className="py-16 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-navy-800 to-navy-950 border border-white/5 p-8 lg:p-12">

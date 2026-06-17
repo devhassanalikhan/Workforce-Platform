@@ -108,7 +108,7 @@ export default function AboutTrust() {
       {/* Hero */}
       <section
         ref={headerRef}
-        className="relative py-20 lg:py-28 bg-gradient-to-b from-navy-900/50 to-navy-950 border-b border-white/5"
+        className="relative py-20 lg:py-28 bg-muted/40 border-b border-border"
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div
@@ -125,10 +125,10 @@ export default function AboutTrust() {
                 Trust & Safety Center
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
               Our Ethical <span className="text-gradient">Commitment</span>
             </h1>
-            <p className="text-slate-400 text-base leading-relaxed">
+            <p className="text-muted-foreground text-base leading-relaxed">
               We built WorkforceX on a foundation of ethical principles that put
               worker dignity first. Every feature, every partnership, and every
               placement decision is guided by our commitment to fair, transparent,
@@ -145,10 +145,10 @@ export default function AboutTrust() {
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
               Six Pillars
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               The Ethical <span className="text-gradient-teal">Charter</span>
             </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Our Ethical Charter is a binding commitment to every worker on our platform.
               These six pillars guide all our operations and partnerships.
             </p>
@@ -161,7 +161,7 @@ export default function AboutTrust() {
             {ethicalPillars.map((pillar, i) => (
               <div
                 key={pillar.title}
-                className="group p-6 rounded-2xl bg-surface-elevated border border-white/5 hover:border-brand-gold/20 transition-all duration-500"
+                className="group p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 transition-all duration-500"
                 style={{
                   opacity: pillarsVisible ? 1 : 0,
                   transform: pillarsVisible
@@ -185,10 +185,10 @@ export default function AboutTrust() {
                     }`}
                   />
                 </div>
-                <h3 className="text-base font-semibold text-slate-100 mb-3">
+                <h3 className="text-base font-semibold text-card-foreground mb-3">
                   {pillar.title}
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {pillar.description}
                 </p>
               </div>
@@ -198,17 +198,17 @@ export default function AboutTrust() {
       </section>
 
       {/* Safety Framework */}
-      <section className="py-20 lg:py-28 bg-navy-900/30">
+      <section className="py-20 lg:py-28 bg-muted/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-3 block">
                 Multi-Layer Protection
               </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
                 Safety <span className="text-gradient">Framework</span>
               </h2>
-              <p className="text-slate-400 text-sm leading-relaxed mb-8">
+              <p className="text-muted-foreground text-sm leading-relaxed mb-8">
                 Our safety framework operates at multiple levels to protect workers
                 throughout their mobility journey - from pre-departure to post-return.
               </p>
@@ -238,16 +238,16 @@ export default function AboutTrust() {
                 ].map((item) => (
                   <div
                     key={item.title}
-                    className="flex gap-4 p-4 rounded-xl bg-surface-elevated border border-white/5"
+                    className="flex gap-4 p-4 rounded-xl bg-card border border-border"
                   >
                     <div className="w-10 h-10 rounded-lg bg-brand-teal/10 flex items-center justify-center flex-shrink-0">
                       <item.icon className="w-5 h-5 text-brand-teal" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                      <h3 className="text-sm font-semibold text-card-foreground mb-1">
                         {item.title}
                       </h3>
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         {item.desc}
                       </p>
                     </div>
@@ -258,28 +258,28 @@ export default function AboutTrust() {
 
             {/* Visual Side */}
             <div className="relative">
-              <div className="rounded-2xl overflow-hidden border border-white/10">
+              <div className="rounded-2xl overflow-hidden border border-border">
                 <img
                   src="/images/blog-training.jpg"
                   alt="Safety training session"
                   className="w-full h-auto object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
               </div>
 
               {/* Floating stat cards */}
               <div className="absolute -bottom-6 left-4 right-4 flex gap-3">
                 <div className="flex-1 glass rounded-xl p-3 text-center">
                   <div className="text-lg font-bold text-brand-gold">24/7</div>
-                  <div className="text-[9px] text-slate-400">Emergency Support</div>
+                  <div className="text-[9px] text-muted-foreground">Emergency Support</div>
                 </div>
                 <div className="flex-1 glass rounded-xl p-3 text-center">
                   <div className="text-lg font-bold text-brand-teal">&lt;2hr</div>
-                  <div className="text-[9px] text-slate-400">Response Time</div>
+                  <div className="text-[9px] text-muted-foreground">Response Time</div>
                 </div>
                 <div className="flex-1 glass rounded-xl p-3 text-center">
-                  <div className="text-lg font-bold text-white">100%</div>
-                  <div className="text-[9px] text-slate-400">Contract Reviewed</div>
+                  <div className="text-lg font-bold text-foreground">100%</div>
+                  <div className="text-[9px] text-muted-foreground">Contract Reviewed</div>
                 </div>
               </div>
             </div>
@@ -291,10 +291,10 @@ export default function AboutTrust() {
       <section className="py-16 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Certified & Compliant
             </h2>
-            <p className="text-slate-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               Industry-leading standards and third-party verification
             </p>
           </div>
@@ -306,7 +306,7 @@ export default function AboutTrust() {
             {complianceBadges.map((badge, i) => (
               <div
                 key={badge.label}
-                className="text-center p-5 rounded-2xl bg-surface-elevated border border-white/5 hover:border-brand-gold/20 transition-all duration-300 group"
+                className="text-center p-5 rounded-2xl bg-card border border-border hover:border-brand-gold/20 transition-all duration-300 group"
                 style={{
                   opacity: badgesVisible ? 1 : 0,
                   transform: badgesVisible
@@ -318,10 +318,10 @@ export default function AboutTrust() {
                 <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-brand-gold/20 transition-colors">
                   <Award className="w-5 h-5 text-brand-gold" />
                 </div>
-                <div className="text-xs font-semibold text-slate-200 mb-0.5">
+                <div className="text-xs font-semibold text-card-foreground mb-0.5">
                   {badge.label}
                 </div>
-                <div className="text-[10px] text-slate-500">{badge.desc}</div>
+                <div className="text-[10px] text-muted-foreground">{badge.desc}</div>
               </div>
             ))}
           </div>
@@ -329,13 +329,13 @@ export default function AboutTrust() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 lg:py-28 bg-navy-900/30" ref={testimonialsRef}>
+      <section className="py-20 lg:py-28 bg-muted/30" ref={testimonialsRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
               Worker Stories
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Voices of <span className="text-gradient-teal">Change</span>
             </h2>
           </div>
@@ -344,7 +344,7 @@ export default function AboutTrust() {
             {testimonials.map((t, idx) => (
               <div
                 key={t.name}
-                className="relative p-6 rounded-2xl bg-surface-elevated border border-white/5"
+                className="relative p-6 rounded-2xl bg-card border border-border"
                 style={{
                   opacity: testimonialsVisible ? 1 : 0,
                   transform: testimonialsVisible
@@ -354,15 +354,15 @@ export default function AboutTrust() {
                 }}
               >
                 <Quote className="w-8 h-8 text-brand-gold/20 mb-4" />
-                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                   "{t.quote}"
                 </p>
-                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <div className="flex items-center justify-between pt-4 border-t border-border">
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">
+                    <div className="text-sm font-semibold text-card-foreground">
                       {t.name}
                     </div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-[11px] text-muted-foreground">
                       {t.role} | {t.location}
                     </div>
                   </div>
@@ -390,7 +390,7 @@ export default function AboutTrust() {
             ].map(stat => (
               <div
                 key={stat.label}
-                className="text-center p-6 rounded-2xl bg-surface-elevated border border-white/5"
+                className="text-center p-6 rounded-2xl bg-card border border-border"
               >
                 <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 flex items-center justify-center mx-auto mb-3">
                   <stat.icon className="w-6 h-6 text-brand-gold" />
@@ -398,7 +398,7 @@ export default function AboutTrust() {
                 <div className="text-2xl font-bold text-gradient mb-1">
                   {stat.value}
                 </div>
-                <div className="text-xs text-slate-500">{stat.label}</div>
+                <div className="text-xs text-muted-foreground">{stat.label}</div>
               </div>
             ))}
           </div>

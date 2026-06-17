@@ -143,9 +143,9 @@ export default function AiAssistant() {
   }
 
   return (
-    <div className="pt-[60px] min-h-screen bg-navy-950">
+    <div className="pt-[60px] min-h-screen bg-background">
       {/* Header */}
-      <section className="relative py-12 lg:py-16 bg-gradient-to-b from-navy-900/50 to-navy-950 border-b border-white/5">
+      <section className="relative py-12 lg:py-16 bg-muted/40 border-b border-border">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div>
@@ -155,10 +155,10 @@ export default function AiAssistant() {
                   AI-Powered
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
                 Mobility <span className="text-gradient">Assistant</span>
               </h1>
-              <p className="text-slate-400 text-sm max-w-xl">
+              <p className="text-muted-foreground text-sm max-w-xl">
                 Your personal AI guide for ethical workforce mobility. Get instant
                 answers about jobs, visas, training, and cultural preparation.
               </p>
@@ -166,13 +166,13 @@ export default function AiAssistant() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] text-emerald-400 font-medium">
+                <span className="text-[11px] dark:text-emerald-400 text-emerald-600 font-medium">
                   Online
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 border border-border">
                 <Zap className="w-3.5 h-3.5 text-brand-gold" />
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-muted-foreground">
                   GPT-4 Powered
                 </span>
               </div>
@@ -184,7 +184,7 @@ export default function AiAssistant() {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-[1fr_320px] gap-6 h-[calc(100vh-240px)] min-h-[500px]">
           {/* Chat Area */}
-          <div className="flex flex-col rounded-2xl bg-surface-elevated border border-white/5 overflow-hidden">
+          <div className="flex flex-col rounded-2xl bg-card border border-border overflow-hidden">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 scrollbar-hide">
               {messages.map(msg => (
@@ -210,15 +210,15 @@ export default function AiAssistant() {
                   <div
                     className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${
                       msg.role === 'assistant'
-                        ? 'bg-white/5 text-slate-300 border border-white/5'
-                        : 'bg-brand-teal/10 text-slate-200 border border-brand-teal/10'
+                        ? 'bg-muted text-foreground border border-border'
+                        : 'bg-brand-teal/10 text-foreground border border-brand-teal/20'
                     }`}
                   >
                     <div className="whitespace-pre-wrap">{msg.content}</div>
                     <div
                       className={`text-[10px] mt-2 ${
                         msg.role === 'assistant'
-                          ? 'text-slate-600'
+                          ? 'text-muted-foreground/60'
                           : 'text-brand-teal/60'
                       }`}
                     >
@@ -235,8 +235,8 @@ export default function AiAssistant() {
                   <div className="w-8 h-8 rounded-xl bg-brand-gold/10 flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4 text-brand-gold" />
                   </div>
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <div className="p-4 rounded-2xl bg-muted border border-border">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="w-4 h-4 animate-spin text-brand-gold" />
                       Analyzing your query...
                     </div>
@@ -247,7 +247,7 @@ export default function AiAssistant() {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-white/5">
+            <div className="p-4 border-t border-border">
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -255,7 +255,7 @@ export default function AiAssistant() {
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSend(input)}
                   placeholder="Ask about jobs, visas, training..."
-                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-brand-gold/50 transition-all"
+                  className="flex-1 px-4 py-3 bg-background border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brand-gold/50 transition-all"
                 />
                 <button
                   onClick={() => handleSend(input)}
@@ -271,8 +271,8 @@ export default function AiAssistant() {
           {/* Sidebar */}
           <div className="hidden lg:flex flex-col gap-4 overflow-y-auto scrollbar-hide">
             {/* Quick Prompts */}
-            <div className="p-5 rounded-2xl bg-surface-elevated border border-white/5">
-              <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <h3 className="text-sm font-semibold text-card-foreground mb-4 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-brand-gold" />
                 Quick Questions
               </h3>
@@ -281,13 +281,13 @@ export default function AiAssistant() {
                   <button
                     key={prompt.label}
                     onClick={() => handlePromptClick(prompt.prompt)}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all text-left group"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted border border-border transition-all text-left group"
                   >
                     <prompt.icon className="w-4 h-4 text-brand-teal flex-shrink-0" />
-                    <span className="text-xs text-slate-300 group-hover:text-slate-100 transition-colors">
+                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                       {prompt.label}
                     </span>
-                    <ArrowRight className="w-3 h-3 text-slate-600 group-hover:text-brand-gold ml-auto transition-colors" />
+                    <ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-brand-gold ml-auto transition-colors" />
                   </button>
                 ))}
               </div>
@@ -296,9 +296,9 @@ export default function AiAssistant() {
             {/* Features */}
             <div
               ref={featuresRef}
-              className="p-5 rounded-2xl bg-surface-elevated border border-white/5 flex-1"
+              className="p-5 rounded-2xl bg-card border border-border flex-1"
             >
-              <h3 className="text-sm font-semibold text-slate-200 mb-4">
+              <h3 className="text-sm font-semibold text-card-foreground mb-4">
                 Capabilities
               </h3>
               <div className="space-y-3">
@@ -318,10 +318,10 @@ export default function AiAssistant() {
                       <feature.icon className="w-4 h-4 text-brand-gold" />
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-slate-200">
+                      <div className="text-xs font-medium text-card-foreground">
                         {feature.title}
                       </div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-[11px] text-muted-foreground">
                         {feature.description}
                       </div>
                     </div>

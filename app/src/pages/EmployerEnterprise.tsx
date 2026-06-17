@@ -151,7 +151,7 @@ export default function EmployerEnterprise() {
   return (
     <div className="pt-[60px] min-h-screen">
       {/* Hero */}
-      <section className="relative py-20 lg:py-28 bg-gradient-to-b from-navy-900/50 to-navy-950 border-b border-white/5">
+      <section className="relative py-20 lg:py-28 bg-muted/40 border-b border-border">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div
@@ -168,11 +168,11 @@ export default function EmployerEnterprise() {
                   For Employers
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
                 Hire Verified Global{' '}
                 <span className="text-gradient">Talent</span> Ethically
               </h1>
-              <p className="text-slate-400 text-base leading-relaxed mb-8 max-w-xl">
+              <p className="text-muted-foreground text-base leading-relaxed mb-8 max-w-xl">
                 Access a pool of 50,000+ AI-scored, pre-verified candidates from
                 42 countries. Our ethical recruitment platform ensures compliance,
                 reduces hiring time, and builds long-term workforce partnerships.
@@ -182,7 +182,7 @@ export default function EmployerEnterprise() {
                   <Sparkles className="w-4 h-4" />
                   Post a Job - Free
                 </button>
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
+                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-all">
                   <Briefcase className="w-4 h-4" />
                   Request Demo
                 </button>
@@ -192,28 +192,28 @@ export default function EmployerEnterprise() {
             <div className="relative hidden lg:block">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4 mt-8">
-                  <div className="p-5 rounded-2xl bg-surface-elevated border border-white/5 animate-float">
+                  <div className="p-5 rounded-2xl bg-card border border-border animate-float">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center">
                         <Users className="w-5 h-5 text-brand-gold" />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-white">
+                        <div className="text-sm font-semibold text-card-foreground">
                           New Applicant
                         </div>
-                        <div className="text-[10px] text-slate-500">
+                        <div className="text-[10px] text-muted-foreground">
                           AI Match: 96%
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs text-muted-foreground">
                       Senior Construction Supervisor from India with 8 years GCC
                       experience
                     </div>
                   </div>
-                  <div className="p-5 rounded-2xl bg-surface-elevated border border-white/5">
+                  <div className="p-5 rounded-2xl bg-card border border-border">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-slate-300">
+                      <span className="text-xs font-medium text-card-foreground">
                         Hiring Pipeline
                       </span>
                       <span className="text-[10px] text-brand-gold">Active</span>
@@ -226,16 +226,16 @@ export default function EmployerEnterprise() {
                         { label: 'Hired', count: 12, color: 'bg-emerald-500' },
                       ].map(item => (
                         <div key={item.label} className="flex items-center gap-2">
-                          <span className="text-[10px] text-slate-500 w-16">
+                          <span className="text-[10px] text-muted-foreground w-16">
                             {item.label}
                           </span>
-                          <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <div className="flex-1 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${item.color}`}
                               style={{ width: `${(item.count / 142) * 100}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-slate-400 w-6 text-right">
+                          <span className="text-[10px] text-muted-foreground w-6 text-right">
                             {item.count}
                           </span>
                         </div>
@@ -244,30 +244,30 @@ export default function EmployerEnterprise() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-5 rounded-2xl bg-surface-elevated border border-white/5">
+                  <div className="p-5 rounded-2xl bg-card border border-border">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-slate-300">
+                      <span className="text-xs font-medium text-card-foreground">
                         Compliance Score
                       </span>
-                      <span className="text-sm font-bold text-emerald-400">
+                      <span className="text-sm font-bold text-emerald-500 dark:text-emerald-400">
                         100%
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-2">
+                    <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden mb-2">
                       <div className="h-full w-full bg-emerald-500 rounded-full" />
                     </div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[10px] text-muted-foreground">
                       All 24 candidates fully compliant
                     </div>
                   </div>
-                  <div className="p-5 rounded-2xl bg-surface-elevated border border-brand-gold/20 animate-float">
+                  <div className="p-5 rounded-2xl bg-card border border-brand-gold/20 animate-float">
                     <div className="flex items-center gap-2 mb-3">
                       <Zap className="w-4 h-4 text-brand-gold" />
                       <span className="text-xs font-medium text-brand-gold">
                         AI Insight
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       Candidate pool trending +23% for healthcare roles in GCC.
                       Recommend increasing nursing job postings.
                     </p>
@@ -280,13 +280,13 @@ export default function EmployerEnterprise() {
       </section>
 
       {/* Stats */}
-      <section className="py-10 border-b border-white/5" ref={statsRef}>
+      <section className="py-10 border-b border-border" ref={statsRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((stat, i) => (
               <div
                 key={stat.label}
-                className="flex items-center gap-3 p-4 rounded-xl bg-surface-elevated border border-white/5"
+                className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border"
                 style={{
                   opacity: statsVisible ? 1 : 0,
                   transform: statsVisible ? 'translateY(0)' : 'translateY(16px)',
@@ -297,8 +297,8 @@ export default function EmployerEnterprise() {
                   <stat.icon className="w-5 h-5 text-brand-gold" />
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-white">{stat.value}</div>
-                  <div className="text-[10px] text-slate-500">{stat.label}</div>
+                  <div className="text-xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-[10px] text-muted-foreground">{stat.label}</div>
                 </div>
               </div>
             ))}
@@ -313,11 +313,11 @@ export default function EmployerEnterprise() {
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
               Platform Features
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Built for Modern{' '}
               <span className="text-gradient-teal">Recruitment</span>
             </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Everything you need to hire ethical, verified international talent - from
               AI matching to compliance automation.
             </p>
@@ -330,7 +330,7 @@ export default function EmployerEnterprise() {
             {features.map((feature, i) => (
               <div
                 key={feature.title}
-                className="p-6 rounded-2xl bg-surface-elevated border border-white/5 hover:border-brand-gold/20 transition-all duration-500 group"
+                className="p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 transition-all duration-500 group"
                 style={{
                   opacity: featuresVisible ? 1 : 0,
                   transform: featuresVisible
@@ -342,10 +342,10 @@ export default function EmployerEnterprise() {
                 <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 flex items-center justify-center mb-4 group-hover:bg-brand-gold/20 transition-colors">
                   <feature.icon className="w-6 h-6 text-brand-gold" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-100 mb-2">
+                <h3 className="text-base font-semibold text-card-foreground mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -355,13 +355,13 @@ export default function EmployerEnterprise() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 lg:py-28 bg-navy-900/30">
+      <section className="py-20 lg:py-28 bg-muted/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-3 block">
               Employer Stories
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Trusted by Industry{' '}
               <span className="text-gradient">Leaders</span>
             </h2>
@@ -371,7 +371,7 @@ export default function EmployerEnterprise() {
             {testimonials.map(t => (
               <div
                 key={t.author}
-                className="p-6 rounded-2xl bg-surface-elevated border border-white/5"
+                className="p-6 rounded-2xl bg-card border border-border"
               >
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -381,11 +381,11 @@ export default function EmployerEnterprise() {
                     />
                   ))}
                 </div>
-                <p className="text-sm text-slate-300 leading-relaxed mb-6">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
                   "{t.quote}"
                 </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-white/5">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden">
+                <div className="flex items-center gap-3 pt-4 border-t border-border">
+                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
                     <img
                       src={t.logo}
                       alt={t.role}
@@ -393,10 +393,10 @@ export default function EmployerEnterprise() {
                     />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-slate-200">
+                    <div className="text-sm font-medium text-card-foreground">
                       {t.author}
                     </div>
-                    <div className="text-[11px] text-slate-500">{t.role}</div>
+                    <div className="text-[11px] text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
               </div>
@@ -412,11 +412,11 @@ export default function EmployerEnterprise() {
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
               Pricing
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Simple, <span className="text-gradient-teal">Transparent</span>{' '}
               Pricing
             </h2>
-            <p className="text-slate-400 max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto">
               No hidden fees. No placement commissions from workers. You only pay
               for the platform features you use.
             </p>
@@ -435,8 +435,8 @@ export default function EmployerEnterprise() {
                 key={plan.name}
                 className={`relative p-6 rounded-2xl border transition-all duration-300 ${
                   plan.popular
-                    ? 'bg-surface-elevated border-brand-gold/30 shadow-glow'
-                    : 'bg-surface-elevated/50 border-white/5 hover:border-white/10'
+                    ? 'bg-card border-brand-gold/30 shadow-glow'
+                    : 'bg-card/50 border-border hover:border-border'
                 }`}
               >
                 {plan.popular && (
@@ -448,24 +448,24 @@ export default function EmployerEnterprise() {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-xs text-slate-500">{plan.description}</p>
+                  <p className="text-xs text-muted-foreground">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
-                  <span className="text-3xl font-bold text-white">
+                  <span className="text-3xl font-bold text-foreground">
                     {plan.price}
                   </span>
-                  <span className="text-sm text-slate-500">{plan.period}</span>
+                  <span className="text-sm text-muted-foreground">{plan.period}</span>
                 </div>
 
                 <ul className="space-y-3 mb-8">
                   {plan.features.map(feature => (
                     <li
                       key={feature}
-                      className="flex items-start gap-2 text-xs text-slate-400"
+                      className="flex items-start gap-2 text-xs text-muted-foreground"
                     >
                       <CheckCircle2 className="w-4 h-4 text-brand-teal flex-shrink-0 mt-0.5" />
                       {feature}
@@ -477,7 +477,7 @@ export default function EmployerEnterprise() {
                   className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
                     plan.popular
                       ? 'bg-brand-gold text-navy-950 hover:bg-brand-gold-light'
-                      : 'bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10'
+                      : 'bg-muted text-foreground hover:bg-muted/80 border border-border'
                   }`}
                 >
                   {plan.cta}
@@ -488,7 +488,7 @@ export default function EmployerEnterprise() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA — intentionally always dark */}
       <section className="py-16 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-navy-800 via-navy-900 to-navy-950 border border-white/5 p-10 lg:p-16 text-center">

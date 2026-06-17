@@ -13,8 +13,8 @@ export default function InfiniteLogoBand() {
   const doubled = [...logos, ...logos]
 
   return (
-    <section className="relative py-10 overflow-hidden border-y border-white/5 bg-navy-950/50">
-      <p className="text-center text-[11px] text-slate-500 uppercase tracking-[0.2em] mb-6">
+    <section className="relative py-10 overflow-hidden border-y border-border bg-muted/30">
+      <p className="text-center text-[11px] text-muted-foreground uppercase tracking-[0.2em] mb-6">
         Trusted by leading employers worldwide
       </p>
       <div className="relative flex overflow-hidden">
@@ -34,9 +34,9 @@ export default function InfiniteLogoBand() {
           ))}
         </div>
       </div>
-      {/* Gradient edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-navy-950 to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-navy-950 to-transparent z-10 pointer-events-none" />
+      {/* Gradient edges using theme background */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
     </section>
   )
 }

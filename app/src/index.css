@@ -19,7 +19,40 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light mode (default) ─────────────────────────────────── */
   :root {
+    --background: 216 35% 97%;
+    --foreground: 216 60% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 216 60% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 60% 8%;
+    --primary: 45 65% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 216 25% 90%;
+    --secondary-foreground: 216 60% 8%;
+    --muted: 216 20% 92%;
+    --muted-foreground: 216 20% 42%;
+    --accent: 172 55% 32%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 216 20% 85%;
+    --input: 216 20% 85%;
+    --ring: 45 65% 44%;
+    --radius: 0.625rem;
+    --sidebar-background: 216 30% 94%;
+    --sidebar-foreground: 216 60% 8%;
+    --sidebar-primary: 45 65% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 216 25% 90%;
+    --sidebar-accent-foreground: 216 60% 8%;
+    --sidebar-border: 216 20% 85%;
+    --sidebar-ring: 45 65% 44%;
+  }
+
+  /* ── Dark mode ────────────────────────────────────────────── */
+  .dark {
     --background: 216 60% 6%;
     --foreground: 220 20% 94%;
     --card: 216 45% 10%;
@@ -39,7 +72,6 @@
     --border: 216 25% 18%;
     --input: 216 25% 18%;
     --ring: 45 65% 52%;
-    --radius: 0.625rem;
     --sidebar-background: 216 45% 8%;
     --sidebar-foreground: 220 20% 94%;
     --sidebar-primary: 45 65% 52%;
@@ -65,26 +97,39 @@
 }
 
 @layer utilities {
+  /* Gold gradient — darker in light mode for WCAG AA contrast */
   .text-gradient {
     @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #9A6C0A 0%, #B8820F 50%, #9A6C0A 100%);
+  }
+  .dark .text-gradient {
     background-image: linear-gradient(135deg, #D4AF37 0%, #E8C84A 50%, #D4AF37 100%);
   }
+
+  /* Teal gradient — darker in light mode */
   .text-gradient-teal {
     @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #1F7A6E 0%, #2A9D8F 100%);
+  }
+  .dark .text-gradient-teal {
     background-image: linear-gradient(135deg, #2A9D8F 0%, #3DBFB0 100%);
   }
+
   .bg-gradient-navy {
     background: linear-gradient(180deg, #060E20 0%, #0C192F 50%, #14233D 100%);
   }
   .bg-gradient-radial {
     background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
   }
+
+  /* Glass — adapts to theme */
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-card/80 backdrop-blur-xl border border-border;
   }
   .glass-strong {
-    @apply bg-white/10 backdrop-blur-2xl border border-white/15;
+    @apply bg-card/90 backdrop-blur-2xl border border-border;
   }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

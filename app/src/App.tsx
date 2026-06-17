@@ -3,6 +3,7 @@ import { Suspense, lazy } from 'react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
+import { ThemeProvider } from './components/ThemeProvider'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
 const JobsMarketplace = lazy(() => import('./pages/JobsMarketplace'))
@@ -15,24 +16,26 @@ const EmployerEnterprise = lazy(() => import('./pages/EmployerEnterprise'))
 
 function App() {
   return (
-    <div className="min-h-screen bg-navy-950 text-slate-100 font-sans">
-      <Navbar />
-      <main>
-        <Suspense fallback={<LoadingScreen />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/jobs" element={<JobsMarketplace />} />
-            <Route path="/skills" element={<SkillsTraining />} />
-            <Route path="/talent" element={<TalentPool />} />
-            <Route path="/about" element={<AboutTrust />} />
-            <Route path="/ai-assistant" element={<AiAssistant />} />
-            <Route path="/blog" element={<BlogResources />} />
-            <Route path="/employers" element={<EmployerEnterprise />} />
-          </Routes>
-        </Suspense>
-      </main>
-      <Footer />
-    </div>
+    <ThemeProvider defaultTheme="dark" storageKey="workforcex-theme">
+      <div className="min-h-screen bg-background text-foreground font-sans transition-colors duration-300">
+        <Navbar />
+        <main>
+          <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/jobs" element={<JobsMarketplace />} />
+              <Route path="/skills" element={<SkillsTraining />} />
+              <Route path="/talent" element={<TalentPool />} />
+              <Route path="/about" element={<AboutTrust />} />
+              <Route path="/ai-assistant" element={<AiAssistant />} />
+              <Route path="/blog" element={<BlogResources />} />
+              <Route path="/employers" element={<EmployerEnterprise />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </ThemeProvider>
   )
 }
 

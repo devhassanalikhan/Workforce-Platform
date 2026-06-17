@@ -14,6 +14,7 @@ import {
   Building2,
   Sparkles,
 } from 'lucide-react'
+import { ModeToggle } from './ModeToggle'
 
 const navLinks = [
   { label: 'Jobs', href: '/jobs', icon: Briefcase },
@@ -51,7 +52,7 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-navy-950/80 backdrop-blur-xl border-b border-white/5 shadow-lg'
+          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg'
           : 'bg-transparent'
       }`}
     >
@@ -59,14 +60,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-[60px]">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="relative">
-              <Globe className="w-7 h-7 text-brand-gold transition-transform duration-300 group-hover:rotate-12" />
-            </div>
+            <Globe className="w-7 h-7 text-brand-gold transition-transform duration-300 group-hover:rotate-12" />
             <div className="flex flex-col">
-              <span className="text-[15px] font-semibold text-slate-100 tracking-tight leading-tight">
+              <span className="text-[15px] font-semibold text-foreground tracking-tight leading-tight">
                 Workforce<span className="text-brand-gold">X</span>
               </span>
-              <span className="text-[9px] text-slate-500 uppercase tracking-[0.15em] leading-tight">
+              <span className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] leading-tight">
                 Ethical Mobility
               </span>
             </div>
@@ -81,7 +80,7 @@ export default function Navbar() {
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 ${
                   isActive(link.href)
                     ? 'text-brand-gold bg-brand-gold/10'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
                 <link.icon className="w-4 h-4" />
@@ -93,7 +92,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5`}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/50"
               >
                 More
                 <ChevronDown
@@ -103,7 +102,7 @@ export default function Navbar() {
               {moreOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setMoreOpen(false)} />
-                  <div className="absolute top-full right-0 mt-2 w-52 bg-navy-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
+                  <div className="absolute top-full right-0 mt-2 w-52 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
                     {moreLinks.map(link => (
                       <Link
                         key={link.href}
@@ -111,7 +110,7 @@ export default function Navbar() {
                         className={`flex items-center gap-3 px-4 py-3 text-[13px] font-medium transition-all duration-150 ${
                           isActive(link.href)
                             ? 'text-brand-gold bg-brand-gold/10'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                         }`}
                       >
                         <link.icon className="w-4 h-4" />
@@ -125,10 +124,13 @@ export default function Navbar() {
           </div>
 
           {/* Right Actions */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
+            {/* ← ModeToggle lives here, between nav links and CTA buttons */}
+            <ModeToggle />
+
             <Link
               to="/ai-assistant"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
             >
               <Sparkles className="w-4 h-4 text-brand-gold" />
               AI Assistant
@@ -142,19 +144,22 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile: ModeToggle + Hamburger */}
+          <div className="lg:hidden flex items-center gap-1">
+            <ModeToggle />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-navy-950/95 backdrop-blur-xl border-t border-white/5 animate-fade-in-up">
+        <div className="lg:hidden bg-background/95 backdrop-blur-xl border-t border-border animate-fade-in-up">
           <div className="px-4 py-4 space-y-1">
             {[...navLinks, ...moreLinks].map(link => (
               <Link
@@ -163,14 +168,14 @@ export default function Navbar() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive(link.href)
                     ? 'text-brand-gold bg-brand-gold/10'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
                 <link.icon className="w-5 h-5" />
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-white/5">
+            <div className="pt-3 border-t border-border">
               <Link
                 to="/employers"
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-brand-gold text-navy-950 text-sm font-semibold"

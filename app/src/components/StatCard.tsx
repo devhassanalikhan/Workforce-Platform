@@ -25,7 +25,7 @@ export default function StatCard({
   return (
     <div
       ref={ref}
-      className="relative p-6 rounded-2xl bg-surface-elevated border border-white/5 group hover:border-brand-gold/20 transition-all duration-500"
+      className="relative p-6 rounded-2xl bg-card border border-border group hover:border-brand-gold/30 transition-all duration-500 hover:shadow-card"
       style={{
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
@@ -36,15 +36,15 @@ export default function StatCard({
         <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center">
           <Icon className="w-5 h-5 text-brand-gold" />
         </div>
-        <span className="text-[10px] text-slate-600 uppercase tracking-wider font-medium">
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
           {label}
         </span>
       </div>
       <div className="text-3xl font-bold text-gradient mb-2 tabular-nums">
         {displayValue}
       </div>
-      <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
-      <div className="absolute inset-0 rounded-2xl bg-brand-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+      <div className="absolute inset-0 rounded-2xl bg-brand-gold/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
     </div>
   )
 }

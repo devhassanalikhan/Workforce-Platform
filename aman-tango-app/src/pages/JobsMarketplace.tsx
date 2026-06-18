@@ -328,7 +328,7 @@ export default function JobsMarketplace() {
   )
 
   return (
-    <div className="pt-[60px] min-h-screen bg-background">
+    <div className="pt-[96px] min-h-screen bg-background">
       {/* ── Page Header ───────────────────────────────────────── */}
       <section
         ref={headerRef}

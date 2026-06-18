@@ -12,7 +12,9 @@ const TalentPool = lazy(() => import('./pages/TalentPool'))
 const AboutTrust = lazy(() => import('./pages/AboutTrust'))
 const AiAssistant = lazy(() => import('./pages/AiAssistant'))
 const BlogResources = lazy(() => import('./pages/BlogResources'))
-const EmployerEnterprise = lazy(() => import('./pages/EmployerEnterprise'))
+const EmployerEnterprise    = lazy(() => import('./pages/EmployerEnterprise'))
+const PlacementDashboard    = lazy(() => import('./pages/PlacementDashboard'))
+const WaslDashboard         = lazy(() => import('./pages/WaslDashboard'))
 
 function App() {
   return (
@@ -29,7 +31,9 @@ function App() {
               <Route path="/about" element={<AboutTrust />} />
               <Route path="/ai-assistant" element={<AiAssistant />} />
               <Route path="/blog" element={<BlogResources />} />
-              <Route path="/employers" element={<EmployerEnterprise />} />
+              <Route path="/employers"  element={<EmployerEnterprise />} />
+              <Route path="/placement" element={<PlacementDashboard />} />
+              <Route path="/wasl"      element={<WaslDashboard />} />
             </Routes>
           </Suspense>
         </main>

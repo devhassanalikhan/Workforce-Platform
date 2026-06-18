@@ -156,7 +156,7 @@ export default function SkillsTraining() {
       : courses.filter(c => c.category === activeCategory)
 
   return (
-    <div className="pt-[60px] min-h-screen">
+    <div className="pt-[96px] min-h-screen">
       {/* Header */}
       <section
         ref={headerRef}

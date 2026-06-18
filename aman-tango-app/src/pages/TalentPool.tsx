@@ -13,6 +13,7 @@ import {
   BookOpen,
   GraduationCap,
   CheckCircle2,
+  Activity,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 
@@ -26,6 +27,24 @@ const filters = [
   { label: 'Logistics', count: 980 },
   { label: 'Digital Skills', count: 1090 },
 ]
+
+const STAGE_LABELS: Record<number, string> = {
+  1: 'Job Order Matched',
+  2: 'Profile Screened',
+  3: 'Training Enrolled',
+  4: 'Readiness Cleared',
+  5: 'Handed to FF OES',
+  6: 'Deployed',
+}
+
+const STAGE_COLORS: Record<number, { bar: string; badge: string; text: string }> = {
+  1: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
+  2: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
+  3: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
+  4: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
+  5: { bar: 'bg-brand-gold',  badge: 'bg-brand-gold/10 text-brand-gold border-brand-gold/20',   text: 'text-brand-gold'  },
+  6: { bar: 'bg-violet-500',  badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',   text: 'text-violet-400'  },
+}
 
 const talents = [
   {
@@ -42,6 +61,10 @@ const talents = [
     verified: true,
     available: true,
     badge: 'Top Rated',
+    pipelineStage: 3,
+    jobOrderId: 'JO-2841',
+    jobOrderTitle: 'Senior Construction Supervisor',
+    jobOrderCountry: 'Dubai, UAE',
   },
   {
     id: 2,
@@ -57,6 +80,10 @@ const talents = [
     verified: true,
     available: true,
     badge: 'Healthcare Star',
+    pipelineStage: 5,
+    jobOrderId: 'JO-1923',
+    jobOrderTitle: 'Registered Nurse — ICU',
+    jobOrderCountry: 'Riyadh, KSA',
   },
   {
     id: 3,
@@ -72,6 +99,10 @@ const talents = [
     verified: true,
     available: true,
     badge: null,
+    pipelineStage: 2,
+    jobOrderId: 'JO-3312',
+    jobOrderTitle: 'Warehouse Logistics Coordinator',
+    jobOrderCountry: 'Toronto, Canada',
   },
   {
     id: 4,
@@ -87,6 +118,10 @@ const talents = [
     verified: true,
     available: false,
     badge: 'Hospitality Pro',
+    pipelineStage: 6,
+    jobOrderId: 'JO-0891',
+    jobOrderTitle: 'Hotel Operations Manager',
+    jobOrderCountry: 'Oslo, Norway',
   },
   {
     id: 5,
@@ -102,10 +137,14 @@ const talents = [
     verified: true,
     available: true,
     badge: null,
+    pipelineStage: 3,
+    jobOrderId: 'JO-4401',
+    jobOrderTitle: 'IT Support Technician',
+    jobOrderCountry: 'Berlin, Germany',
   },
   {
     id: 6,
-    name: 'Rajesh Kumar',
+    name: 'Harpreet Singh',
     photo: '/images/talent-1.jpg',
     role: 'Master Electrician',
     location: 'Punjab, India',
@@ -117,6 +156,10 @@ const talents = [
     verified: true,
     available: true,
     badge: 'Elite Talent',
+    pipelineStage: 4,
+    jobOrderId: 'JO-2156',
+    jobOrderTitle: 'Senior Electrician — Mining',
+    jobOrderCountry: 'Perth, Australia',
   },
 ]
 
@@ -133,7 +176,7 @@ export default function TalentPool() {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
 
   return (
-    <div className="pt-[60px] min-h-screen bg-background">
+    <div className="pt-[96px] min-h-screen bg-background">
       {/* ── Page Header ───────────────────────────────────────── */}
       <section
         ref={headerRef}
@@ -348,6 +391,50 @@ export default function TalentPool() {
                         className="h-full rounded-full bg-gradient-to-r from-brand-teal via-brand-gold to-brand-gold"
                         style={{ width: `${talent.aiReadiness}%` }}
                       />
+                    </div>
+                  </div>
+
+                  {/* Pipeline stage indicator */}
+                  <div className="mt-4 pt-4 border-t border-border space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Activity className={`w-3.5 h-3.5 ${STAGE_COLORS[talent.pipelineStage].text}`} />
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Pipeline Stage</span>
+                      </div>
+                      <span className={`text-[10px] font-bold ${STAGE_COLORS[talent.pipelineStage].text}`}>
+                        {talent.pipelineStage} of 6
+                      </span>
+                    </div>
+                    {/* 6-segment progress bar */}
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 6 }, (_, i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 h-1.5 rounded-full transition-all ${
+                            i < talent.pipelineStage
+                              ? STAGE_COLORS[talent.pipelineStage].bar
+                              : 'bg-border'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${STAGE_COLORS[talent.pipelineStage].text}`} />
+                      <span className={`text-[11px] font-semibold ${STAGE_COLORS[talent.pipelineStage].text}`}>
+                        Stage {talent.pipelineStage}: {STAGE_LABELS[talent.pipelineStage]}
+                      </span>
+                    </div>
+                    {/* Job order anchor */}
+                    <div className="flex items-start gap-1.5 p-2 rounded-lg bg-brand-gold/5 border border-brand-gold/10">
+                      <Briefcase className="w-3 h-3 text-brand-gold mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <span className="text-[10px] text-muted-foreground">Mapped to: </span>
+                        <span className="text-[10px] font-semibold text-card-foreground">{talent.jobOrderTitle}</span>
+                        <span className="text-[10px] text-muted-foreground"> · {talent.jobOrderCountry}</span>
+                        <div className="text-[9px] font-bold text-brand-gold mt-0.5">
+                          Job Order {talent.jobOrderId}
+                        </div>
+                      </div>
                     </div>
                   </div>
 

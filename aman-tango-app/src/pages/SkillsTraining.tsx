@@ -383,14 +383,14 @@ export default function SkillsTraining() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="relative p-6 rounded-2xl bg-card border border-border text-center group hover:border-brand-gold/20 transition-all duration-500"
+                className="p-6 rounded-2xl bg-card border border-border text-center group hover:border-brand-gold/20 transition-all duration-500"
               >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-brand-gold/10 border border-brand-gold/20">
-                  <span className="text-[10px] font-bold text-brand-gold">
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/20 mb-4">
+                  <span className="text-[10px] font-bold text-brand-gold tracking-wider">
                     Step {item.step}
                   </span>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 flex items-center justify-center mx-auto mb-4 mt-2 group-hover:bg-brand-gold/20 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-brand-gold/20 transition-colors">
                   <item.icon className="w-5 h-5 text-brand-gold" />
                 </div>
                 <h3 className="text-sm font-semibold text-card-foreground mb-2">

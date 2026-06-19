@@ -50,7 +50,7 @@ const workers: WorkerCard[] = [
     employer: 'Al-Rashid Construction LLC',
     country: 'United Arab Emirates',
     city: 'Dubai',
-    avatar: 'RK',
+    avatar: 'AK',
     status: 'active',
     jobOrderId: 'JO-2841',
     deployedDate: '22 Jun 2026',

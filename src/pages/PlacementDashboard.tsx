@@ -47,12 +47,12 @@ interface PlacementCandidate {
 const candidates: PlacementCandidate[] = [
   {
     id: 'c1',
-    name: 'Rajesh Kumar',
+    name: 'Ali Khan',
     role: 'Construction Supervisor',
     country: 'United Arab Emirates',
     employer: 'Al-Rashid Construction LLC',
     jobOrderId: 'JO-2841',
-    avatar: 'RK',
+    avatar: 'AK',
     checklist: [
       { id: 'docs',      label: 'Identity Documents Verified',    sublabel: 'Passport, NID, Birth Certificate',         icon: FileText,    status: 'complete', detail: 'Verified by FF OES compliance team on 12 Jun 2026' },
       { id: 'contract',  label: 'Employment Contract Signed',      sublabel: 'Bilingual EN/AR — MOHRE compliant',         icon: FileCheck,   status: 'complete', detail: 'Contract countersigned by Al-Rashid HR on 10 Jun 2026' },

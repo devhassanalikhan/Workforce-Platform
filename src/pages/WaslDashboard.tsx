@@ -45,7 +45,7 @@ interface WorkerCard {
 const workers: WorkerCard[] = [
   {
     id: 'w1',
-    name: 'Rajesh Kumar',
+    name: 'Ali Khan',
     role: 'Construction Supervisor',
     employer: 'Al-Rashid Construction LLC',
     country: 'United Arab Emirates',

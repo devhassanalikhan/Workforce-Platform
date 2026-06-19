@@ -180,7 +180,7 @@ export default function EmployerEnterprise() {
               <div className="flex flex-wrap gap-3">
                 <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
                   <Sparkles className="w-4 h-4" />
-                  Post a Job - Free
+                  Post a Job Now
                 </button>
                 <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-all">
                   <Briefcase className="w-4 h-4" />

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   Plane,
   MapPin,
-  Phone,
   AlertTriangle,
   CheckCircle2,
   Clock,

@@ -18,7 +18,6 @@ import {
   Activity,
   FileCheck,
   Plane,
-  CheckCircle2,
 } from 'lucide-react'
 import InfiniteLogoBand from '@/components/InfiniteLogoBand'
 import StatCard from '@/components/StatCard'
@@ -62,54 +61,54 @@ const destinations = [
     country: 'United Arab Emirates',
     flag: '🇦🇪',
     demand: 'High',
-    sectors: ['Construction', 'Hospitality', 'Healthcare'],
+    categories: { Construction: 1200, Hospitality: 640, Healthcare: 1000 },
     avgSalary: '$2,500/mo',
-    jobs: 2840,
+    avgDuration: '38 Days',
     trend: '+18%',
   },
   {
     country: 'Saudi Arabia',
     flag: '🇸🇦',
     demand: 'High',
-    sectors: ['Engineering', 'Logistics', 'IT'],
+    categories: { Engineering: 800, Logistics: 650, IT: 500 },
     avgSalary: '$3,200/mo',
-    jobs: 1950,
+    avgDuration: '45 Days',
     trend: '+24%',
   },
   {
     country: 'Germany',
     flag: '🇩🇪',
     demand: 'Medium',
-    sectors: ['Healthcare', 'Manufacturing', 'Tech'],
+    categories: { Healthcare: 600, Manufacturing: 400, Tech: 200 },
     avgSalary: '€3,800/mo',
-    jobs: 1200,
+    avgDuration: '72 Days',
     trend: '+12%',
   },
   {
     country: 'Canada',
     flag: '🇨🇦',
     demand: 'Medium',
-    sectors: ['Agriculture', 'Construction', 'Care Work'],
+    categories: { Agriculture: 300, Construction: 400, 'Care Work': 190 },
     avgSalary: 'CAD 4,500/mo',
-    jobs: 890,
+    avgDuration: '60 Days',
     trend: '+9%',
   },
   {
     country: 'Japan',
     flag: '🇯🇵',
     demand: 'Growing',
-    sectors: ['Electronics', 'Automotive', 'Nursing'],
+    categories: { Electronics: 200, Automotive: 250, Nursing: 200 },
     avgSalary: '¥380,000/mo',
-    jobs: 650,
+    avgDuration: '90 Days',
     trend: '+31%',
   },
   {
     country: 'Australia',
     flag: '🇦🇺',
     demand: 'Medium',
-    sectors: ['Mining', 'Hospitality', 'Healthcare'],
+    categories: { Mining: 250, Hospitality: 220, Healthcare: 250 },
     avgSalary: 'AUD 5,800/mo',
-    jobs: 720,
+    avgDuration: '52 Days',
     trend: '+7%',
   },
 ]
@@ -253,47 +252,97 @@ const colorMap: Record<PipelineColor, {
   },
 }
 
-// ── Live pipeline snapshot data ────────────────────────────────────────────────
+// ── Global Corridors in Motion data ───────────────────────────────────────────
 
-const liveWorkers = [
+const corridorStageLabels = [
+  'Sourcing',
+  'Screening',
+  'Training',
+  'Readiness',
+  'Compliance',
+  'Deployment',
+]
+
+const corridors = [
   {
-    name: 'Rajesh Kumar',
-    role: 'Construction Supervisor',
-    photo: '/images/talent-1.jpg',
-    destination: 'Dubai, UAE',
-    flag: '🇦🇪',
-    employer: 'Al Rashid Group',
-    jobOrder: 'JO-2841',
-    currentStage: 2,
-    daysInPipeline: 12,
-    stageLabel: 'In Training',
-    color: 'teal' as PipelineColor,
-  },
-  {
-    name: 'Ming Zhao',
-    role: 'Registered Nurse',
-    photo: '/images/talent-2.jpg',
-    destination: 'Riyadh, KSA',
+    country: 'Saudi Arabia',
     flag: '🇸🇦',
-    employer: 'Med Staff Pro',
-    jobOrder: 'JO-1923',
-    currentStage: 4,
-    daysInPipeline: 38,
-    stageLabel: 'Visa Processing',
-    color: 'gold' as PipelineColor,
+    sectors: ['Construction', 'Logistics', 'Healthcare'],
+    avgReadiness: 82,
+    totalVacancies: 1840,
+    totalApplications: 4320,
+    stages: [
+      { duration: '8 Days',  capacity: 150, active: 132 },
+      { duration: '12 Days', capacity: 200, active: 178 },
+      { duration: '21 Days', capacity: 180, active: 154 },
+      { duration: '14 Days', capacity: 160, active: 143 },
+      { duration: '30 Days', capacity: 120, active: 98  },
+      { duration: '10 Days', capacity: 100, active: 87  },
+    ],
   },
   {
-    name: 'Sofia Martinez',
-    role: 'Hotel Operations Manager',
-    photo: '/images/talent-4.jpg',
-    destination: 'Oslo, Norway',
-    flag: '🇳🇴',
-    employer: 'Nordic Hospitality',
-    jobOrder: 'JO-0891',
-    currentStage: 5,
-    daysInPipeline: 52,
-    stageLabel: 'Deployed',
-    color: 'violet' as PipelineColor,
+    country: 'Qatar',
+    flag: '🇶🇦',
+    sectors: ['Hospitality', 'Construction', 'Logistics'],
+    avgReadiness: 78,
+    totalVacancies: 1120,
+    totalApplications: 2890,
+    stages: [
+      { duration: '7 Days',  capacity: 100, active: 88  },
+      { duration: '10 Days', capacity: 140, active: 121 },
+      { duration: '18 Days', capacity: 130, active: 112 },
+      { duration: '12 Days', capacity: 110, active: 95  },
+      { duration: '28 Days', capacity: 90,  active: 74  },
+      { duration: '8 Days',  capacity: 80,  active: 68  },
+    ],
+  },
+  {
+    country: 'Turkey',
+    flag: '🇹🇷',
+    sectors: ['Manufacturing', 'Textile', 'IT Services'],
+    avgReadiness: 74,
+    totalVacancies: 680,
+    totalApplications: 1740,
+    stages: [
+      { duration: '10 Days', capacity: 80,  active: 62  },
+      { duration: '14 Days', capacity: 110, active: 89  },
+      { duration: '25 Days', capacity: 100, active: 78  },
+      { duration: '10 Days', capacity: 90,  active: 71  },
+      { duration: '35 Days', capacity: 70,  active: 52  },
+      { duration: '12 Days', capacity: 60,  active: 48  },
+    ],
+  },
+  {
+    country: 'Oman',
+    flag: '🇴🇲',
+    sectors: ['Oil & Gas', 'Hospitality', 'Construction'],
+    avgReadiness: 80,
+    totalVacancies: 520,
+    totalApplications: 1280,
+    stages: [
+      { duration: '9 Days',  capacity: 70,  active: 58  },
+      { duration: '11 Days', capacity: 90,  active: 77  },
+      { duration: '20 Days', capacity: 85,  active: 69  },
+      { duration: '12 Days', capacity: 75,  active: 61  },
+      { duration: '28 Days', capacity: 60,  active: 45  },
+      { duration: '7 Days',  capacity: 55,  active: 44  },
+    ],
+  },
+  {
+    country: 'China',
+    flag: '🇨🇳',
+    sectors: ['Electronics', 'Manufacturing', 'Logistics'],
+    avgReadiness: 71,
+    totalVacancies: 940,
+    totalApplications: 2150,
+    stages: [
+      { duration: '12 Days', capacity: 120, active: 91  },
+      { duration: '16 Days', capacity: 160, active: 128 },
+      { duration: '30 Days', capacity: 150, active: 114 },
+      { duration: '15 Days', capacity: 130, active: 102 },
+      { duration: '45 Days', capacity: 100, active: 72  },
+      { duration: '14 Days', capacity: 90,  active: 68  },
+    ],
   },
 ]
 
@@ -333,14 +382,14 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-foreground leading-[1.1] mb-6 tracking-tight">
-                Your Future,{' '}
-                <span className="text-gradient">Verified & Protected</span>
+                Ethical Overseas Employment,{' '}
+                <span className="text-gradient">Verified & Secured</span>
               </h1>
 
               <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8 max-w-xl">
-                The world's first AI-governed ethical workforce mobility platform. We match
-                skilled talent with verified international employers through transparent,
-                AI-curated training and blockchain-secured contracts.
+                An end-to-end workforce readiness and international mobility ecosystem. We
+                match skilled talent directly with verified global job orders through
+                demand-aligned training, transparent compliance, and secure placement.
               </p>
 
               <div className="flex flex-wrap gap-3 mb-10">
@@ -361,7 +410,7 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-6 text-xs text-muted-foreground">
-                {['GDPR Compliant', 'Ethical Charter Certified', 'Blockchain Verified'].map(label => (
+                {['Jobs-First Framework', 'Employer-Pays Integrity', 'End-to-End Governance'].map(label => (
                   <div key={label} className="flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-brand-teal" />
                     <span>{label}</span>
@@ -403,11 +452,11 @@ export default function HomePage() {
       {/* ── 6-Stage Pipeline ──────────────────────────────────────────────── */}
       <section
         ref={pipeRef}
-        className="relative py-20 lg:py-28 bg-slate-950 overflow-hidden"
+        className="relative py-20 lg:py-28 bg-slate-50 dark:bg-slate-950 overflow-hidden"
       >
         {/* Subtle grid texture */}
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+        <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '32px 32px' }}
         />
 
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -424,11 +473,11 @@ export default function HomePage() {
             <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-3 block">
               End-to-End Ecosystem
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
               The Complete{' '}
               <span className="text-gradient">6-Stage Journey</span>
             </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-sm leading-relaxed">
               From the moment a verified job order lands on Workfly to the day a worker
               thrives abroad on Wasl — every stage is governed, tracked, and ethically audited.
             </p>
@@ -473,8 +522,8 @@ export default function HomePage() {
                   onClick={() => setActiveStep(i)}
                   className={`group relative flex flex-col items-center gap-2 p-3 sm:p-4 rounded-2xl border transition-all duration-300 text-center ${
                     isActive
-                      ? `${c.border} bg-white/5 ring-1 ${c.ring}`
-                      : 'border-white/8 bg-white/[0.02] hover:bg-white/5 hover:border-white/15'
+                      ? `${c.border} bg-white/5 dark:bg-white/5 ring-1 ${c.ring}`
+                      : 'border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/5 hover:border-slate-300 dark:hover:border-white/15'
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${
@@ -483,10 +532,10 @@ export default function HomePage() {
                     <step.icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
                   </div>
                   <div>
-                    <div className={`text-[10px] font-bold mb-0.5 transition-colors ${isActive ? c.step : 'text-slate-500'}`}>
+                    <div className={`text-[10px] font-bold mb-0.5 transition-colors ${isActive ? c.step : 'text-slate-400 dark:text-slate-500'}`}>
                       Step {step.step}
                     </div>
-                    <div className={`text-[11px] font-semibold leading-tight transition-colors ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                    <div className={`text-[11px] font-semibold leading-tight transition-colors ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                       {step.title}
                     </div>
                   </div>
@@ -501,7 +550,7 @@ export default function HomePage() {
 
           {/* Detail panel */}
           <div
-            className={`rounded-2xl border bg-white/[0.03] p-6 lg:p-8 transition-all duration-500 ${activeColors.border}`}
+            className={`rounded-2xl border bg-white dark:bg-white/[0.03] p-6 lg:p-8 transition-all duration-500 ${activeColors.border}`}
             style={{
               opacity: pipeVisible ? 1 : 0,
               transform: pipeVisible ? 'translateY(0)' : 'translateY(12px)',
@@ -521,7 +570,7 @@ export default function HomePage() {
                   <div className={`text-xs font-bold uppercase tracking-widest mb-1 ${activeColors.step}`}>
                     Stage {active.step}
                   </div>
-                  <h3 className="text-lg font-bold text-white leading-tight">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
                     {active.title}
                   </h3>
                   <p className={`text-xs mt-0.5 ${activeColors.step}`}>{active.subtitle}</p>
@@ -529,11 +578,11 @@ export default function HomePage() {
               </div>
 
               {/* Divider */}
-              <div className="hidden lg:block w-px bg-white/8 self-stretch" />
+              <div className="hidden lg:block w-px bg-slate-200 dark:bg-white/8 self-stretch" />
 
               {/* Right: description + metrics + CTA */}
               <div className="flex-1">
-                <p className="text-slate-300 text-sm leading-relaxed mb-5">
+                <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-5">
                   {active.desc}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-5">
@@ -557,18 +606,18 @@ export default function HomePage() {
                 <button
                   onClick={() => setActiveStep(i => Math.max(0, i - 1))}
                   disabled={activeStep === 0}
-                  className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ArrowRight className="w-4 h-4 rotate-180" />
                 </button>
                 <button
                   onClick={() => setActiveStep(i => Math.min(pipeline.length - 1, i + 1))}
                   disabled={activeStep === pipeline.length - 1}
-                  className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                  className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                 >
                   <ArrowRight className="w-4 h-4" />
                 </button>
-                <span className="text-[10px] text-slate-600 text-center">{activeStep + 1}/{pipeline.length}</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-600 text-center">{activeStep + 1}/{pipeline.length}</span>
               </div>
             </div>
           </div>
@@ -598,127 +647,189 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Live Pipeline Snapshot ────────────────────────────────────────── */}
-      <section className="py-16 lg:py-20 bg-muted/30" ref={liveRef}>
+      {/* ── Global Corridors in Motion ────────────────────────────────────── */}
+      <section className="py-16 lg:py-24 bg-muted/30" ref={liveRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Section header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
-                Live Pipeline
+                Global Corridor Intelligence
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
-                Workers in <span className="text-gradient-teal">Motion</span>
+                Global Corridors in <span className="text-gradient-teal">Motion</span>
               </h2>
               <p className="text-muted-foreground text-sm max-w-lg">
-                A real-time snapshot of candidates actively progressing through the 6-stage
-                pipeline — from identification to live deployment.
+                Macro-level overview of active destination corridors — tracking pipeline
+                density, stage velocity, and aggregate demand across target markets.
               </p>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex-shrink-0 self-start sm:self-auto">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                847 Active Deployments
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium tabular-nums">
+                5 Active Corridors · 10,100+ Positions
               </span>
             </div>
           </div>
 
-          {/* Stage label strip */}
-          <div className="hidden lg:grid grid-cols-6 gap-1 mb-2 px-[88px]">
-            {pipeline.map((s, i) => (
-              <div key={i} className="text-center">
-                <span className={`text-[9px] font-semibold uppercase tracking-wider ${colorMap[s.color].step} opacity-70`}>
-                  {s.title.split(' ')[0]}
-                </span>
-              </div>
-            ))}
+          {/* Column header strip */}
+          <div className="hidden lg:flex items-center gap-4 mb-2 px-5">
+            {/* Left flank spacer */}
+            <div className="w-[220px] flex-shrink-0">
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                Destination Corridor
+              </span>
+            </div>
+            {/* Stage column labels */}
+            <div className="flex-1 grid grid-cols-6 gap-1 min-w-0">
+              {corridorStageLabels.map((label, i) => {
+                const stageColor = i <= 3 ? 'text-brand-teal' : i === 4 ? 'text-brand-gold' : 'text-violet-400'
+                return (
+                  <div key={i} className="text-center">
+                    <span className={`text-[9px] font-semibold uppercase tracking-widest ${stageColor} opacity-60`}>
+                      {label}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            {/* Right flank label */}
+            <div className="w-[176px] flex-shrink-0">
+              <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                Aggregate Demand
+              </span>
+            </div>
           </div>
 
-          {/* Worker rows */}
+          {/* Corridor rows */}
           <div className="space-y-3">
-            {liveWorkers.map((worker, wi) => {
-              const c = colorMap[worker.color]
-              return (
-                <div
-                  key={worker.name}
-                  className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 lg:p-5 rounded-2xl bg-card border border-border hover:border-brand-teal/20 transition-all duration-300"
-                  style={{
-                    opacity: liveVisible ? 1 : 0,
-                    transform: liveVisible ? 'translateX(0)' : 'translateX(-16px)',
-                    transition: `all 0.5s ease ${wi * 0.1}s`,
-                  }}
-                >
-                  {/* Avatar + info */}
-                  <div className="flex items-center gap-3 sm:w-56 flex-shrink-0">
-                    <img
-                      src={worker.photo}
-                      alt={worker.name}
-                      className="w-10 h-10 rounded-xl object-cover object-top flex-shrink-0 border border-border"
-                    />
-                    <div>
-                      <div className="text-sm font-semibold text-card-foreground leading-tight">{worker.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{worker.role}</div>
+            {corridors.map((corridor, ci) => (
+              <div
+                key={corridor.country}
+                className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 lg:p-5 rounded-2xl bg-card border border-border hover:border-brand-teal/20 transition-all duration-300"
+                style={{
+                  opacity: liveVisible ? 1 : 0,
+                  transform: liveVisible ? 'translateX(0)' : 'translateX(-20px)',
+                  transition: `opacity 0.5s ease ${ci * 0.08}s, transform 0.5s ease ${ci * 0.08}s`,
+                }}
+              >
+
+                {/* ── LEFT FLANK: Flag badge + country identity ── */}
+                <div className="flex items-center gap-3 lg:w-[220px] flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-shrink-0 text-[22px] shadow-sm select-none">
+                    {corridor.flag}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">
+                      {corridor.country}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-snug truncate">
+                      {corridor.sectors.join(' · ')}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <div className="w-14 h-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+                        <div
+                          className="h-full rounded-full bg-brand-teal transition-all"
+                          style={{ width: `${corridor.avgReadiness}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-brand-teal tabular-nums whitespace-nowrap">
+                        {corridor.avgReadiness}% Ready
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Pipeline progress track */}
-                  <div className="flex-1 flex items-center gap-1">
-                    {pipeline.map((_, si) => {
-                      const isDone   = si < worker.currentStage
-                      const isActive = si === worker.currentStage
-                      const stepC    = colorMap[pipeline[si].color]
+                {/* ── CENTER FLANK: 6-Stage capacity & velocity tracker ── */}
+                <div className="flex-1 flex items-center min-w-0 overflow-x-auto lg:overflow-visible py-1">
+                  <div className="flex items-center w-full min-w-[360px]">
+                    {corridor.stages.map((stage, si) => {
+                      const utilPct = Math.round((stage.active / stage.capacity) * 100)
+                      const isGold   = si === 4
+                      const isViolet = si === 5
+                      const nodeStyle = isViolet
+                        ? { border: 'border-violet-400/70', bg: 'bg-violet-500/10 dark:bg-violet-500/15', text: 'text-violet-500 dark:text-violet-400' }
+                        : isGold
+                        ? { border: 'border-brand-gold/70', bg: 'bg-brand-gold/10 dark:bg-brand-gold/15', text: 'text-brand-gold' }
+                        : utilPct >= 88
+                        ? { border: 'border-rose-400/70', bg: 'bg-rose-500/10 dark:bg-rose-500/15', text: 'text-rose-500 dark:text-rose-400' }
+                        : utilPct >= 72
+                        ? { border: 'border-amber-400/70', bg: 'bg-amber-500/10 dark:bg-amber-500/15', text: 'text-amber-600 dark:text-amber-400' }
+                        : { border: 'border-brand-teal/60', bg: 'bg-brand-teal/10 dark:bg-brand-teal/15', text: 'text-brand-teal' }
+                      const connectorColor = isViolet
+                        ? 'bg-violet-400/25'
+                        : isGold
+                        ? 'bg-brand-gold/25'
+                        : 'bg-brand-teal/25'
                       return (
                         <div key={si} className="flex items-center flex-1">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all ${
-                            isDone
-                              ? `${stepC.dot} border-transparent`
-                              : isActive
-                              ? `bg-transparent ${stepC.border} ring-2 ${stepC.ring}`
-                              : 'bg-transparent border-border'
-                          }`}>
-                            {isDone ? (
-                              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                            ) : isActive ? (
-                              <div className={`w-2.5 h-2.5 rounded-full ${stepC.dot} animate-pulse`} />
-                            ) : (
-                              <div className="w-2 h-2 rounded-full bg-border" />
-                            )}
+                          {/* Node cluster: [duration] [circle] [capacity] */}
+                          <div className="flex flex-col items-center gap-[3px] flex-shrink-0">
+                            <span className={`text-[9px] font-semibold tabular-nums whitespace-nowrap leading-none ${nodeStyle.text} opacity-80`}>
+                              {stage.duration}
+                            </span>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${nodeStyle.border} ${nodeStyle.bg} flex-shrink-0`}>
+                              <span className={`text-[10px] font-bold tabular-nums ${nodeStyle.text}`}>
+                                {si + 1}
+                              </span>
+                            </div>
+                            <span className="text-[8.5px] font-medium text-muted-foreground tabular-nums whitespace-nowrap leading-none">
+                              [{stage.active}/{stage.capacity}]
+                            </span>
                           </div>
-                          {si < pipeline.length - 1 && (
-                            <div className={`flex-1 h-0.5 mx-0.5 rounded-full ${si < worker.currentStage ? stepC.dot : 'bg-border'}`} />
+                          {/* Connector line */}
+                          {si < corridor.stages.length - 1 && (
+                            <div className={`flex-1 h-[2px] mx-1 rounded-full ${connectorColor}`} />
                           )}
                         </div>
                       )
                     })}
                   </div>
+                </div>
 
-                  {/* Stage + meta */}
-                  <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 sm:w-48 flex-shrink-0">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${c.badge}`}>
-                      {worker.stageLabel}
-                    </span>
-                    <div className="text-[11px] text-muted-foreground text-right space-y-0.5">
-                      <div className="flex items-center gap-1 justify-end">
-                        <span>{worker.flag}</span>
-                        <span>{worker.destination}</span>
-                      </div>
-                      <div className="flex items-center gap-1 justify-end">
-                        <MapPin className="w-3 h-3" />
-                        <span>{worker.employer} · {worker.jobOrder}</span>
-                      </div>
-                      <div className="flex items-center gap-1 justify-end">
-                        <Clock className="w-3 h-3" />
-                        <span>Day {worker.daysInPipeline} in pipeline</span>
-                      </div>
+                {/* ── RIGHT FLANK: Aggregate demand blocks ── */}
+                <div className="flex lg:flex-col gap-2 lg:w-[176px] flex-shrink-0">
+                  <div className="flex-1 lg:flex-none px-3 py-2.5 rounded-xl bg-brand-teal/[0.07] dark:bg-brand-teal/10 border border-brand-teal/20">
+                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums leading-tight">
+                      {corridor.totalVacancies.toLocaleString()}
+                    </div>
+                    <div className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide mt-0.5">
+                      Open Positions
+                    </div>
+                  </div>
+                  <div className="flex-1 lg:flex-none px-3 py-2.5 rounded-xl bg-brand-gold/[0.07] dark:bg-brand-gold/10 border border-brand-gold/20">
+                    <div className="text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums leading-tight">
+                      {corridor.totalApplications.toLocaleString()}
+                    </div>
+                    <div className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide mt-0.5">
+                      Active Processing
                     </div>
                   </div>
                 </div>
-              )
-            })}
+
+              </div>
+            ))}
           </div>
 
-          {/* Footer note */}
-          <p className="mt-4 text-center text-[11px] text-muted-foreground/60">
-            Sample data shown for demonstration. Live dashboard available to registered partners.
+          {/* Utilization legend */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+            {[
+              { color: 'bg-brand-teal',  label: 'Healthy Flow  < 72% capacity' },
+              { color: 'bg-amber-400',   label: 'High Demand  72–87%' },
+              { color: 'bg-rose-400',    label: 'Near Capacity  ≥ 88%' },
+              { color: 'bg-brand-gold',  label: 'Compliance Stage' },
+              { color: 'bg-violet-400',  label: 'Deployment Stage' },
+            ].map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${color}`} />
+                <span className="text-[10px] text-muted-foreground/70">{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-3 text-center text-[10px] text-muted-foreground/50">
+            Pipeline density and velocity indicators reflect aggregated corridor data. Live dashboard available to registered partners.
           </p>
         </div>
       </section>
@@ -749,54 +860,83 @@ export default function HomePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {destinations.map((dest, i) => (
-              <div
-                key={dest.country}
-                className="group relative p-5 rounded-2xl bg-card border border-border hover:border-brand-teal/30 hover:shadow-card transition-all duration-500 hover:-translate-y-1"
-                style={{
-                  opacity: destVisible ? 1 : 0,
-                  transform: destVisible ? 'translateY(0)' : 'translateY(24px)',
-                  transition: `all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.08}s`,
-                }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{dest.flag}</span>
-                    <div>
-                      <h3 className="text-sm font-semibold text-card-foreground">{dest.country}</h3>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <MapPin className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-[10px] text-muted-foreground">
-                          {dest.jobs.toLocaleString()} open positions
-                        </span>
+            {destinations.map((dest, i) => {
+              const total = Object.values(dest.categories).reduce((sum, n) => sum + n, 0)
+              return (
+                <div
+                  key={dest.country}
+                  className="group relative p-5 rounded-2xl bg-card border border-border hover:border-brand-teal/30 hover:shadow-card transition-all duration-500 hover:-translate-y-1"
+                  style={{
+                    opacity: destVisible ? 1 : 0,
+                    transform: destVisible ? 'translateY(0)' : 'translateY(24px)',
+                    transition: `all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.08}s`,
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{dest.flag}</span>
+                      <div>
+                        <h3 className="text-sm font-semibold text-card-foreground">{dest.country}</h3>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <MapPin className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-[10px] text-muted-foreground">
+                            Total Open Positions:{' '}
+                            <span className="font-bold text-card-foreground">{total.toLocaleString()}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${demandStyles[dest.demand] ?? demandStyles.Medium}`}>
-                    {dest.demand} Demand
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {dest.sectors.map(sector => (
-                    <span key={sector} className="px-2 py-1 rounded-md bg-muted text-[10px] text-muted-foreground border border-border">
-                      {sector}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${demandStyles[dest.demand] ?? demandStyles.Medium}`}>
+                      {dest.demand} Demand
                     </span>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-border">
-                  <div>
-                    <span className="text-[10px] text-muted-foreground block">Avg. Salary</span>
-                    <span className="text-sm font-semibold text-card-foreground">{dest.avgSalary}</span>
+                  {/* Sector breakdown */}
+                  <div className="space-y-1.5 mb-4">
+                    {Object.entries(dest.categories).map(([sector, count]) => (
+                      <div key={sector} className="flex items-center justify-between">
+                        <span className="text-[10px] text-muted-foreground">{sector}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-brand-teal/60"
+                              style={{ width: `${Math.round((count / total) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-semibold text-slate-900 dark:text-slate-100 w-8 text-right tabular-nums">
+                            {count.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{dest.trend}</span>
+
+                  {/* Avg. Placement Velocity */}
+                  <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-brand-teal/[0.07] dark:bg-brand-teal/10 border border-brand-teal/20 mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        Avg. Placement Velocity
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                      {dest.avgDuration}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Avg. Salary</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{dest.avgSalary}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">{dest.trend}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>

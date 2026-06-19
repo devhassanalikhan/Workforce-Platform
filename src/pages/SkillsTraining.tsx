@@ -19,6 +19,7 @@ import {
   Cpu,
   Truck,
   HardHat,
+  MapPin,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 
@@ -33,6 +34,57 @@ const categories = [
   { id: 'safety', label: 'Safety', icon: HardHat },
 ]
 
+const trainingCenters = [
+  {
+    id: 'A',
+    name: 'United College of Technology (UCT)',
+    location: 'Rawalpindi',
+    hub: 'Northern Hub',
+    sectors: 'Auto Mechanic, HVAC Systems, Civil Engineering Surveying',
+    governance: 'Affiliated with NAVTTC (National Vocational & Technical Training Commission)',
+    verificationTag: 'Government Affiliated via NAVTTC',
+    verificationColor: 'text-brand-teal border-brand-teal/30 bg-brand-teal/10',
+    capacity: 1200,
+    completionYear: '2019',
+  },
+  {
+    id: 'B',
+    name: 'Government College of Technology (GCT) — Punjab TEVTA',
+    location: 'Gulberg, Lahore',
+    hub: 'Central Industrial Hub',
+    sectors: 'Electric Vehicle Engineering, Mechanical Die & Tooling, Digital Silk Road ICT Systems',
+    governance: 'Technical Education & Vocational Training Authority (TEVTA) Punjab',
+    verificationTag: 'TEVTA Punjab Quality Assured',
+    verificationColor: 'text-brand-gold border-brand-gold/30 bg-brand-gold/10',
+    capacity: 2400,
+    completionYear: '2017',
+  },
+  {
+    id: 'C',
+    name: 'Swedish Institute of Technology',
+    location: 'Karachi',
+    hub: 'Southern Hub',
+    sectors: 'Mechanical Automation, Electrical Diagnostics, Marine Engineering Basics',
+    governance: 'Sindh TEVTA Compliant Pipeline',
+    verificationTag: 'Sindh TEVTA Compliant',
+    verificationColor: 'text-violet-400 border-violet-400/30 bg-violet-400/10',
+    capacity: 1800,
+    completionYear: '2015',
+  },
+  {
+    id: 'D',
+    name: 'Don Bosco Technical Institute',
+    location: 'Lahore',
+    hub: 'Specialized Trade Facility',
+    sectors: 'Precision Woodworking, Industrial Welding, Pattern Drafting',
+    governance: 'PTEC Council / Regional Board Alignment',
+    verificationTag: 'PTEC Council Registered',
+    verificationColor: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
+    capacity: 960,
+    completionYear: '2013',
+  },
+]
+
 const courses = [
   {
     id: 1,
@@ -43,9 +95,9 @@ const courses = [
     level: 'Beginner to Intermediate',
     enrolled: 2340,
     rating: 4.8,
-    provider: 'Cambridge Certified',
+    provider: 'UCT Rawalpindi — NAVTTC Affiliated',
     price: 'Free',
-    description: 'Master workplace English with industry-specific vocabulary, professional email writing, and interview preparation.',
+    description: 'Master workplace English with industry-specific vocabulary, professional email writing, and interview preparation for Gulf and international placements.',
     modules: 12,
     certification: 'CEFR B1-B2 Certificate',
     skills: ['Business English', 'Interview Prep', 'Email Writing', 'Presentation Skills'],
@@ -60,9 +112,9 @@ const courses = [
     level: 'Intermediate',
     enrolled: 1890,
     rating: 4.9,
-    provider: 'TUV Certified',
-    price: '$150',
-    description: 'Comprehensive hands-on training in MIG, TIG, and arc welding with safety protocols and quality standards.',
+    provider: 'Don Bosco Technical Institute — PTEC Registered',
+    price: 'PKR 15,000',
+    description: 'Hands-on MIG, TIG, and arc welding with ISO standards and industrial safety protocols. Delivery aligned to Don Bosco Lahore\'s precision trade curriculum.',
     modules: 18,
     certification: 'ISO 9606 Welding Certificate',
     skills: ['MIG Welding', 'TIG Welding', 'Arc Welding', 'Blueprint Reading', 'Quality Control'],
@@ -77,9 +129,9 @@ const courses = [
     level: 'Beginner',
     enrolled: 3100,
     rating: 4.7,
-    provider: 'Red Cross Certified',
-    price: '$200',
-    description: 'Essential patient care skills including vital signs, hygiene assistance, mobility support, and infection control.',
+    provider: 'UCT Rawalpindi — NAVTTC Health Track',
+    price: 'Free',
+    description: 'Essential patient care skills including vital signs, infection control, and ICU-support competencies. Curriculum registered under NAVTTC Health Assistant framework.',
     modules: 15,
     certification: 'Nursing Assistant Certificate',
     skills: ['Patient Hygiene', 'Vital Signs', 'Mobility Support', 'Infection Control', 'CPR'],
@@ -94,9 +146,9 @@ const courses = [
     level: 'Beginner',
     enrolled: 1560,
     rating: 4.6,
-    provider: 'AHLEI Certified',
-    price: '$120',
-    description: 'Learn front desk operations, guest relations, housekeeping management, and hospitality service excellence.',
+    provider: 'Swedish Institute of Technology — Sindh TEVTA',
+    price: 'PKR 12,000',
+    description: 'Front desk operations, guest relations, and F&B service excellence. Delivered through Sindh TEVTA compliant pipeline at Swedish Institute, Karachi.',
     modules: 10,
     certification: 'Hospitality Management Diploma',
     skills: ['Front Desk', 'Guest Relations', 'Housekeeping', 'F&B Service', 'Revenue Management'],
@@ -104,16 +156,16 @@ const courses = [
   },
   {
     id: 5,
-    title: 'Digital Literacy & Office Productivity',
+    title: 'Digital Silk Road ICT & Office Productivity',
     category: 'digital',
     image: '/images/training-digital.jpg',
     duration: '4 weeks',
     level: 'Beginner',
     enrolled: 4200,
     rating: 4.8,
-    provider: 'Microsoft Certified',
+    provider: 'GCT Punjab TEVTA — Digital Silk Road Track',
     price: 'Free',
-    description: 'Build essential digital skills including Microsoft Office, data entry, email management, and online collaboration.',
+    description: 'Build ICT skills aligned to the Digital Silk Road corridor. Microsoft Office, data entry, and cloud collaboration delivered via GCT Gulberg, TEVTA Punjab.',
     modules: 8,
     certification: 'Microsoft Office Specialist',
     skills: ['Excel', 'Word', 'PowerPoint', 'Data Entry', 'Email Management'],
@@ -121,19 +173,19 @@ const courses = [
   },
   {
     id: 6,
-    title: 'Supply Chain & Warehouse Operations',
-    category: 'logistics',
-    image: '/images/job-logistics.jpg',
+    title: 'Mechanical Automation & Electrical Diagnostics',
+    category: 'technical',
+    image: '/images/job-electronics.jpg',
     duration: '8 weeks',
     level: 'Intermediate',
     enrolled: 980,
     rating: 4.5,
-    provider: 'APICS Certified',
-    price: '$180',
-    description: 'Master inventory management, WMS systems, forklift operation, and logistics coordination.',
+    provider: 'Swedish Institute of Technology — Sindh TEVTA',
+    price: 'PKR 18,000',
+    description: 'PLC programming, industrial wiring, and automation diagnostics. Covers marine engineering basics for port-sector placements. Sindh TEVTA compliant.',
     modules: 14,
-    certification: 'Supply Chain Operations Certificate',
-    skills: ['Inventory Management', 'WMS Systems', 'Forklift Operation', 'Logistics Coordination'],
+    certification: 'G-III Automation Certificate',
+    skills: ['PLC Programming', 'Industrial Wiring', 'Automation Diagnostics', 'Marine Basics'],
     progress: 0,
   },
 ]
@@ -206,6 +258,55 @@ export default function SkillsTraining() {
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Accredited Training Centers */}
+      <section className="py-10 lg:py-14 border-b border-border">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-2 block">
+              Institutional Partners
+            </span>
+            <h2 className="text-xl font-bold text-foreground">Accredited Training Network</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {trainingCenters.map(center => (
+              <div
+                key={center.id}
+                className="p-5 rounded-2xl bg-card border border-border hover:border-brand-gold/20 transition-all duration-300 flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    {center.hub}
+                  </span>
+                  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap flex-shrink-0 ${center.verificationColor}`}>
+                    {center.verificationTag}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-card-foreground leading-snug mb-1">
+                    {center.name}
+                  </h3>
+                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                    {center.location}
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {center.sectors}
+                </p>
+                <div className="pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
+                  <span>Capacity: <span className="font-semibold text-foreground">{center.capacity.toLocaleString()}</span></span>
+                  <span>Est. <span className="font-semibold text-foreground">{center.completionYear}</span></span>
+                </div>
+                <div className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
+                  <ShieldCheck className="w-3 h-3 text-brand-teal mt-0.5 flex-shrink-0" />
+                  <span>{center.governance}</span>
                 </div>
               </div>
             ))}
@@ -313,7 +414,7 @@ export default function SkillsTraining() {
 
                   {/* Meta */}
                   <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {course.enrolled.toLocaleString()}

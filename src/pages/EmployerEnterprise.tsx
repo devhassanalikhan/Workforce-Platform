@@ -16,8 +16,12 @@ import {
   Award,
   Briefcase,
   ChevronRight,
+  MapPin,
+  FileText,
+  Activity,
 } from 'lucide-react'
 import { useScrollAnimation, useStaggerAnimation } from '@/hooks/useScrollAnimation'
+import { useAuth } from '@/contexts/AuthContext'
 
 const features = [
   {
@@ -142,7 +146,42 @@ const plans = [
   },
 ]
 
+// ── Al-Rashid Construction LLC — JO-2841 scoped data ─────────────────────────
+
+const JO_PIPELINE = [
+  { label: 'Sourced',   count: 12, color: 'bg-brand-gold'  },
+  { label: 'Screened',  count: 8,  color: 'bg-brand-teal'  },
+  { label: 'Shortlist', count: 3,  color: 'bg-blue-500'    },
+  { label: 'Confirmed', count: 1,  color: 'bg-emerald-500' },
+]
+
+const JO_CANDIDATE = {
+  name:       'Ali Khan',
+  initials:   'AK',
+  trade:      'Construction Supervisor',
+  origin:     'Rawalpindi, Pakistan',
+  destination:'Dubai, UAE',
+  aiScore:    96,
+  stage:      5,
+  totalStages:6,
+  stageLabel: 'Ethical Placement',
+  jobOrderId: 'JO-2841',
+  visa:       'Stamped',
+  flight:     'Pending',
+  contract:   'Countersigned',
+}
+
+const JO_COMPLIANCE_ITEMS = [
+  { label: 'Employment Contract', status: 'done'    as const },
+  { label: 'Medical Clearance',   status: 'done'    as const },
+  { label: 'UAE Work Visa',       status: 'done'    as const },
+  { label: 'Flight & Logistics',  status: 'pending' as const },
+]
+
 export default function EmployerEnterprise() {
+  const { user } = useAuth()
+  const isEmployer = user?.role === 'employer'
+
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
   const { ref: featuresRef, isVisible: featuresVisible } = useStaggerAnimation(6, 0.08)
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation()
@@ -192,39 +231,39 @@ export default function EmployerEnterprise() {
             <div className="relative hidden lg:block">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4 mt-8">
+                  {/* Candidate card — scoped to JO-2841 */}
                   <div className="p-5 rounded-2xl bg-card border border-border animate-float">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-brand-gold/10 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-brand-gold" />
+                      <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-sm font-bold text-brand-gold tabular-nums">
+                        {JO_CANDIDATE.initials}
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-card-foreground">
-                          New Applicant
+                          {JO_CANDIDATE.name}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          AI Match: 96%
+                        <div className="text-[10px] text-brand-teal font-medium tabular-nums">
+                          AI Match: {JO_CANDIDATE.aiScore}%
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Senior Construction Supervisor from India with 8 years GCC
-                      experience
+                    <div className="text-xs text-muted-foreground mb-2">
+                      {JO_CANDIDATE.trade} · {JO_CANDIDATE.origin}
+                    </div>
+                    <div className="flex items-center gap-1 text-[9px] text-brand-gold font-semibold">
+                      <Activity className="w-3 h-3" />
+                      Stage {JO_CANDIDATE.stage} of {JO_CANDIDATE.totalStages} — {JO_CANDIDATE.stageLabel}
                     </div>
                   </div>
+                  {/* JO-2841 pipeline widget */}
                   <div className="p-5 rounded-2xl bg-card border border-border">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-medium text-card-foreground">
-                        Hiring Pipeline
+                      <span className="text-xs font-medium text-card-foreground tabular-nums">
+                        JO-2841 Pipeline
                       </span>
                       <span className="text-[10px] text-brand-gold">Active</span>
                     </div>
                     <div className="space-y-2">
-                      {[
-                        { label: 'Sourced', count: 142, color: 'bg-brand-gold' },
-                        { label: 'Screened', count: 89, color: 'bg-brand-teal' },
-                        { label: 'Interview', count: 34, color: 'bg-blue-500' },
-                        { label: 'Hired', count: 12, color: 'bg-emerald-500' },
-                      ].map(item => (
+                      {JO_PIPELINE.map(item => (
                         <div key={item.label} className="flex items-center gap-2">
                           <span className="text-[10px] text-muted-foreground w-16">
                             {item.label}
@@ -232,10 +271,10 @@ export default function EmployerEnterprise() {
                           <div className="flex-1 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${item.color}`}
-                              style={{ width: `${(item.count / 142) * 100}%` }}
+                              style={{ width: `${(item.count / 12) * 100}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-muted-foreground w-6 text-right">
+                          <span className="text-[10px] text-muted-foreground w-4 text-right tabular-nums">
                             {item.count}
                           </span>
                         </div>
@@ -249,7 +288,7 @@ export default function EmployerEnterprise() {
                       <span className="text-xs font-medium text-card-foreground">
                         Compliance Score
                       </span>
-                      <span className="text-sm font-bold text-emerald-500 dark:text-emerald-400">
+                      <span className="text-sm font-bold text-emerald-500 dark:text-emerald-400 tabular-nums">
                         100%
                       </span>
                     </div>
@@ -257,7 +296,7 @@ export default function EmployerEnterprise() {
                       <div className="h-full w-full bg-emerald-500 rounded-full" />
                     </div>
                     <div className="text-[10px] text-muted-foreground">
-                      All 24 candidates fully compliant
+                      JO-2841 — all documents verified
                     </div>
                   </div>
                   <div className="p-5 rounded-2xl bg-card border border-brand-gold/20 animate-float">
@@ -268,8 +307,8 @@ export default function EmployerEnterprise() {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                      Candidate pool trending +23% for healthcare roles in GCC.
-                      Recommend increasing nursing job postings.
+                      Construction Supervisor talent pool from Punjab growing +18% for UAE roles.
+                      Ali Khan has a 96% match for your JO-2841 requirements.
                     </p>
                   </div>
                 </div>
@@ -278,6 +317,145 @@ export default function EmployerEnterprise() {
           </div>
         </div>
       </section>
+
+      {/* ── JO-2841 Active Placement Portal — visible to employer only ─────── */}
+      {isEmployer && (
+        <section className="py-8 border-b border-border bg-card/30">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+
+            {/* Section header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block mb-1">
+                  Al-Rashid Construction LLC
+                </span>
+                <h2 className="text-base font-bold text-card-foreground">Active Job Orders</h2>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20">
+                <Activity className="w-3 h-3 text-brand-gold" />
+                <span className="text-[10px] font-semibold text-brand-gold tabular-nums">1 Active</span>
+              </div>
+            </div>
+
+            {/* JO-2841 card */}
+            <div className="rounded-2xl bg-card border border-border overflow-hidden">
+              {/* Card header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-brand-gold" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-bold text-card-foreground tabular-nums">JO-2841</span>
+                      <span className="text-[9px] font-bold text-brand-gold bg-brand-gold/10 border border-brand-gold/20 px-1.5 py-0.5 rounded-full">ACTIVE</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">Construction Supervisor · Dubai, UAE</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Dubai, UAE</span>
+                </div>
+              </div>
+
+              <div className="p-6 grid lg:grid-cols-3 gap-6">
+
+                {/* Candidate snapshot */}
+                <div className="lg:col-span-1 space-y-4">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                    Confirmed Candidate
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-sm font-bold text-brand-gold tabular-nums flex-shrink-0">
+                      {JO_CANDIDATE.initials}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-card-foreground">{JO_CANDIDATE.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{JO_CANDIDATE.trade}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                      <span>{JO_CANDIDATE.origin}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                      <span>Destination: {JO_CANDIDATE.destination}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                      <span className="tabular-nums">AI Match: {JO_CANDIDATE.aiScore}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pipeline bar */}
+                <div className="lg:col-span-1 space-y-4">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                    Placement Journey
+                  </span>
+                  <div className="flex gap-1">
+                    {Array.from({ length: JO_CANDIDATE.totalStages }, (_, i) => i + 1).map(step => (
+                      <div
+                        key={step}
+                        className={`flex-1 h-2 rounded-full ${
+                          step < JO_CANDIDATE.stage  ? 'bg-brand-teal' :
+                          step === JO_CANDIDATE.stage ? 'bg-brand-gold' :
+                                                        'bg-border'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-[11px] text-brand-gold font-semibold tabular-nums">
+                    Stage {JO_CANDIDATE.stage} of {JO_CANDIDATE.totalStages} — {JO_CANDIDATE.stageLabel}
+                  </div>
+                  <div className="space-y-1.5">
+                    {JO_PIPELINE.map(item => (
+                      <div key={item.label} className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground w-16">{item.label}</span>
+                        <div className="flex-1 h-1 bg-foreground/10 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${item.color}`} style={{ width: `${(item.count / 12) * 100}%` }} />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground tabular-nums">{item.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Compliance checklist */}
+                <div className="lg:col-span-1 space-y-4">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                    Document Status
+                  </span>
+                  <div className="space-y-2">
+                    {JO_COMPLIANCE_ITEMS.map(item => (
+                      <div key={item.label} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-[12px] text-muted-foreground">{item.label}</span>
+                        </div>
+                        {item.status === 'done' ? (
+                          <div className="flex items-center gap-1 text-brand-teal">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-semibold">Verified</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-brand-gold">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-semibold">Pending</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Stats */}
       <section className="py-10 border-b border-border" ref={statsRef}>
@@ -405,8 +583,8 @@ export default function EmployerEnterprise() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="py-20 lg:py-28" ref={pricingRef}>
+      {/* Pricing — hidden for authenticated employer accounts */}
+      {!isEmployer && <section className="py-20 lg:py-28" ref={pricingRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
@@ -486,7 +664,7 @@ export default function EmployerEnterprise() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* CTA — intentionally always dark */}
       <section className="py-16 lg:py-20">
@@ -495,23 +673,47 @@ export default function EmployerEnterprise() {
             <div className="absolute inset-0 bg-gradient-radial opacity-50" />
             <div className="relative z-10 max-w-2xl mx-auto">
               <Award className="w-12 h-12 text-brand-gold mx-auto mb-4" />
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Ready to Transform Your Hiring?
-              </h2>
-              <p className="text-slate-400 mb-8">
-                Join 500+ ethical employers who trust WorkforceX to build their
-                global teams. Start with a free job posting today.
-              </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
-                  <Sparkles className="w-4 h-4" />
-                  Post Your First Job
-                </button>
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
-                  <ChevronRight className="w-4 h-4" />
-                  Talk to Sales
-                </button>
-              </div>
+              {isEmployer ? (
+                <>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                    Need More Talent for Your Team?
+                  </h2>
+                  <p className="text-slate-400 mb-8">
+                    Post additional job orders for Al-Rashid Construction LLC and let our AI
+                    surface pre-verified candidates within 48 hours.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
+                      <Sparkles className="w-4 h-4" />
+                      Post a New Job Order
+                    </button>
+                    <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
+                      <ChevronRight className="w-4 h-4" />
+                      Contact Your Account Manager
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                    Ready to Transform Your Hiring?
+                  </h2>
+                  <p className="text-slate-400 mb-8">
+                    Join 500+ ethical employers who trust WorkforceX to build their
+                    global teams. Start with a free job posting today.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
+                      <Sparkles className="w-4 h-4" />
+                      Post Your First Job
+                    </button>
+                    <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
+                      <ChevronRight className="w-4 h-4" />
+                      Talk to Sales
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -14,8 +14,11 @@ import {
   GraduationCap,
   CheckCircle2,
   Activity,
+  Lock,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { useAuth } from '@/contexts/AuthContext'
+import { hasRole } from '@/lib/rbac'
 
 const filters = [
   { label: 'All Skills', count: 12450 },
@@ -155,6 +158,10 @@ export default function TalentPool() {
   const [activeFilter, setActiveFilter] = useState('All Skills')
   const [searchQuery, setSearchQuery] = useState('')
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
+  const { user } = useAuth()
+
+  // Employer-tier fields: AI score, pipeline stage, job order details
+  const canSeePrivateFields = user !== null && hasRole(user.role, 'employer')
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
@@ -358,65 +365,87 @@ export default function TalentPool() {
                     </div>
                   </div>
 
-                  {/* AI Readiness */}
-                  <div className="pt-4 border-t border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-                        <span className="text-[11px] text-muted-foreground">AI Readiness Score</span>
+                  {/* AI Readiness — employer+ only */}
+                  <div className={`pt-4 border-t border-border transition-opacity duration-300 ${canSeePrivateFields ? 'opacity-100' : 'opacity-60'}`}>
+                    {canSeePrivateFields ? (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
+                            <span className="text-[11px] text-muted-foreground">AI Readiness Score</span>
+                          </div>
+                          <span className="text-sm font-bold text-brand-gold tabular-nums">{talent.aiReadiness}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-brand-teal via-brand-gold to-brand-gold"
+                            style={{ width: `${talent.aiReadiness}%` }}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 py-1">
+                        <Lock className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
+                        <span className="text-[11px] text-muted-foreground/50">
+                          AI score visible to Employer accounts
+                        </span>
                       </div>
-                      <span className="text-sm font-bold text-brand-gold">{talent.aiReadiness}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-brand-teal via-brand-gold to-brand-gold"
-                        style={{ width: `${talent.aiReadiness}%` }}
-                      />
-                    </div>
+                    )}
                   </div>
 
-                  {/* Pipeline stage indicator */}
-                  <div className="mt-4 pt-4 border-t border-border space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Activity className={`w-3.5 h-3.5 ${STAGE_COLORS[talent.pipelineStage].text}`} />
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Pipeline Stage</span>
-                      </div>
-                      <span className={`text-[10px] font-bold ${STAGE_COLORS[talent.pipelineStage].text}`}>
-                        {talent.pipelineStage} of 6
-                      </span>
-                    </div>
-                    {/* 6-segment progress bar */}
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <div
-                          key={i}
-                          className={`flex-1 h-1.5 rounded-full transition-all ${
-                            i < talent.pipelineStage
-                              ? STAGE_COLORS[talent.pipelineStage].bar
-                              : 'bg-border'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${STAGE_COLORS[talent.pipelineStage].text}`} />
-                      <span className={`text-[11px] font-semibold ${STAGE_COLORS[talent.pipelineStage].text}`}>
-                        Stage {talent.pipelineStage}: {STAGE_LABELS[talent.pipelineStage]}
-                      </span>
-                    </div>
-                    {/* Job order anchor */}
-                    <div className="flex items-start gap-1.5 p-2 rounded-lg bg-brand-gold/5 border border-brand-gold/10">
-                      <Briefcase className="w-3 h-3 text-brand-gold mt-0.5 flex-shrink-0" />
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-muted-foreground">Mapped to: </span>
-                        <span className="text-[10px] font-semibold text-card-foreground">{talent.jobOrderTitle}</span>
-                        <span className="text-[10px] text-muted-foreground"> · {talent.jobOrderCountry}</span>
-                        <div className="text-[9px] font-bold text-brand-gold mt-0.5">
-                          Job Order {talent.jobOrderId}
+                  {/* Pipeline stage + job order — employer+ only */}
+                  <div className={`mt-4 pt-4 border-t border-border transition-opacity duration-300 ${canSeePrivateFields ? 'opacity-100' : 'opacity-60'}`}>
+                    {canSeePrivateFields ? (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Activity className={`w-3.5 h-3.5 ${STAGE_COLORS[talent.pipelineStage].text}`} />
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Pipeline Stage</span>
+                          </div>
+                          <span className={`text-[10px] font-bold tabular-nums ${STAGE_COLORS[talent.pipelineStage].text}`}>
+                            {talent.pipelineStage} of 6
+                          </span>
+                        </div>
+                        {/* 6-segment progress bar */}
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: 6 }, (_, i) => (
+                            <div
+                              key={i}
+                              className={`flex-1 h-1.5 rounded-full transition-all ${
+                                i < talent.pipelineStage
+                                  ? STAGE_COLORS[talent.pipelineStage].bar
+                                  : 'bg-border'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${STAGE_COLORS[talent.pipelineStage].text}`} />
+                          <span className={`text-[11px] font-semibold ${STAGE_COLORS[talent.pipelineStage].text}`}>
+                            Stage {talent.pipelineStage}: {STAGE_LABELS[talent.pipelineStage]}
+                          </span>
+                        </div>
+                        {/* Job order anchor */}
+                        <div className="flex items-start gap-1.5 p-2 rounded-lg bg-brand-gold/5 border border-brand-gold/10">
+                          <Briefcase className="w-3 h-3 text-brand-gold mt-0.5 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-muted-foreground">Mapped to: </span>
+                            <span className="text-[10px] font-semibold text-card-foreground">{talent.jobOrderTitle}</span>
+                            <span className="text-[10px] text-muted-foreground"> · {talent.jobOrderCountry}</span>
+                            <div className="text-[9px] font-bold text-brand-gold mt-0.5 tabular-nums">
+                              Job Order {talent.jobOrderId}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex items-center gap-2 py-1">
+                        <Lock className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
+                        <span className="text-[11px] text-muted-foreground/50">
+                          Pipeline & job order visible to Employer accounts
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <button className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-brand-gold/10 text-brand-gold rounded-xl text-xs font-medium hover:bg-brand-gold/20 transition-all group/btn">

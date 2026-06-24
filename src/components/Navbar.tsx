@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import {
   Globe,
   Menu,
@@ -15,8 +15,13 @@ import {
   Sparkles,
   FileCheck,
   Plane,
+  LogIn,
+  LogOut,
+  LayoutDashboard,
 } from 'lucide-react'
 import { ModeToggle } from './ModeToggle'
+import { useAuth } from '@/contexts/AuthContext'
+import { hasRole } from '@/lib/rbac'
 
 const navLinks = [
   { label: 'Jobs',      href: '/jobs',       icon: Briefcase     },
@@ -70,9 +75,33 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [moreOpen, setMoreOpen]     = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
 
   const isPillarPage = PILLAR_PATHS.includes(location.pathname)
   const activeSteps  = getActiveSteps(location.pathname)
+
+  // Role-aware nav: Talent/Placement/Wasl only for admin+; Dashboard injected for applicants
+  const visibleNavLinks = (() => {
+    const filtered = navLinks.filter(link => {
+      if (link.href === '/talent' || link.href === '/placement' || link.href === '/wasl') {
+        return user !== null && hasRole(user.role, 'admin')
+      }
+      return true
+    })
+    if (user?.role === 'applicant') {
+      return [
+        { label: 'My Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        ...filtered,
+      ]
+    }
+    return filtered
+  })()
+
+  function handleSignOut() {
+    signOut()
+    navigate('/', { replace: true })
+  }
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40)
@@ -114,7 +143,7 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-0.5">
-            {navLinks.map(link => (
+            {visibleNavLinks.map(link => (
               <Link
                 key={link.href}
                 to={link.href}
@@ -172,13 +201,40 @@ export default function Navbar() {
               <Sparkles className="w-4 h-4 text-brand-gold" />
               AI Assistant
             </Link>
-            <Link
-              to="/employers"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-gold text-navy-950 text-[13px] font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-glow"
-            >
-              <Building2 className="w-4 h-4" />
-              Post Jobs
-            </Link>
+
+            {user ? (
+              /* ── Authenticated identity chip ── */
+              <div className="flex items-center gap-2 pl-2 border-l border-border">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 border border-border">
+                  <div className="w-6 h-6 rounded-full bg-brand-gold/20 border border-brand-gold/30 flex items-center justify-center text-[10px] font-bold text-brand-gold tabular-nums flex-shrink-0">
+                    {user.avatarInitials}
+                  </div>
+                  <div className="flex flex-col leading-none">
+                    <span className="text-[12px] font-semibold text-foreground">{user.fullName}</span>
+                    <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
+                      {user.role.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
+                  title="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              /* ── Public sign-in button ── */
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-gold text-navy-950 text-[13px] font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-glow"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile: ModeToggle + Hamburger */}
@@ -236,7 +292,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden bg-background/95 backdrop-blur-xl border-t border-border animate-fade-in-up">
           <div className="px-4 py-4 space-y-1">
-            {[...navLinks, ...moreLinks].map(link => (
+            {[...visibleNavLinks, ...moreLinks].map(link => (
               <Link
                 key={link.href}
                 to={link.href}
@@ -250,14 +306,37 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-border">
-              <Link
-                to="/employers"
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-brand-gold text-navy-950 text-sm font-semibold"
-              >
-                <Building2 className="w-5 h-5" />
-                Post Jobs
-              </Link>
+            <div className="pt-3 border-t border-border space-y-2">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50 border border-border">
+                    <div className="w-8 h-8 rounded-full bg-brand-gold/20 border border-brand-gold/30 flex items-center justify-center text-[11px] font-bold text-brand-gold tabular-nums">
+                      {user.avatarInitials}
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{user.fullName}</div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                        {user.role.replace('_', ' ')}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-brand-gold text-navy-950 text-sm font-semibold"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </div>

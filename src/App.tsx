@@ -4,41 +4,80 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
 import { ThemeProvider } from './components/ThemeProvider'
+import { AuthProvider } from './contexts/AuthContext'
+import ProtectedRoute from './components/guards/ProtectedRoute'
 
-const HomePage = lazy(() => import('./pages/HomePage'))
-const JobsMarketplace = lazy(() => import('./pages/JobsMarketplace'))
-const SkillsTraining = lazy(() => import('./pages/SkillsTraining'))
-const TalentPool = lazy(() => import('./pages/TalentPool'))
-const AboutTrust = lazy(() => import('./pages/AboutTrust'))
-const AiAssistant = lazy(() => import('./pages/AiAssistant'))
-const BlogResources = lazy(() => import('./pages/BlogResources'))
-const EmployerEnterprise    = lazy(() => import('./pages/EmployerEnterprise'))
-const PlacementDashboard    = lazy(() => import('./pages/PlacementDashboard'))
-const WaslDashboard         = lazy(() => import('./pages/WaslDashboard'))
+// ── Public pages ───────────────────────────────────────────────────────────────
+const HomePage         = lazy(() => import('./pages/HomePage'))
+const JobsMarketplace  = lazy(() => import('./pages/JobsMarketplace'))
+const SkillsTraining   = lazy(() => import('./pages/SkillsTraining'))
+const AboutTrust       = lazy(() => import('./pages/AboutTrust'))
+const AiAssistant      = lazy(() => import('./pages/AiAssistant'))
+const BlogResources    = lazy(() => import('./pages/BlogResources'))
+const LoginPage        = lazy(() => import('./pages/LoginPage'))
+
+// ── Auth-gated pages ───────────────────────────────────────────────────────────
+const ApplicantDashboard = lazy(() => import('./pages/Dashboard'))
+const TalentPool         = lazy(() => import('./pages/TalentPool'))
+const EmployerEnterprise = lazy(() => import('./pages/EmployerEnterprise'))
+const PlacementDashboard = lazy(() => import('./pages/PlacementDashboard'))
+const WaslDashboard      = lazy(() => import('./pages/WaslDashboard'))
 
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="workforcex-theme">
-      <div className="min-h-screen bg-background text-foreground font-sans transition-colors duration-300">
-        <Navbar />
-        <main>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/jobs" element={<JobsMarketplace />} />
-              <Route path="/skills" element={<SkillsTraining />} />
-              <Route path="/talent" element={<TalentPool />} />
-              <Route path="/about" element={<AboutTrust />} />
-              <Route path="/ai-assistant" element={<AiAssistant />} />
-              <Route path="/blog" element={<BlogResources />} />
-              <Route path="/employers"  element={<EmployerEnterprise />} />
-              <Route path="/placement" element={<PlacementDashboard />} />
-              <Route path="/wasl"      element={<WaslDashboard />} />
-            </Routes>
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen bg-background text-foreground font-sans transition-colors duration-300">
+          <Navbar />
+          <main>
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
+                {/* ── Public ─────────────────────────────────────────────── */}
+                <Route path="/"            element={<HomePage />} />
+                <Route path="/jobs"        element={<JobsMarketplace />} />
+                <Route path="/skills"      element={<SkillsTraining />} />
+                <Route path="/about"       element={<AboutTrust />} />
+                <Route path="/ai-assistant" element={<AiAssistant />} />
+                <Route path="/blog"        element={<BlogResources />} />
+                <Route path="/login"       element={<LoginPage />} />
+
+                {/* ── applicant+ ─────────────────────────────────────────── */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute requiredRole="applicant">
+                    <ApplicantDashboard />
+                  </ProtectedRoute>
+                } />
+
+                {/* ── admin+ ─────────────────────────────────────────────── */}
+                <Route path="/talent" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <TalentPool />
+                  </ProtectedRoute>
+                } />
+
+                {/* ── employer+ ──────────────────────────────────────────── */}
+                <Route path="/employers" element={
+                  <ProtectedRoute requiredRole="employer">
+                    <EmployerEnterprise />
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/placement" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <PlacementDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/wasl" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <WaslDashboard />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </Suspense>
+          </main>
+          <Footer />
+        </div>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

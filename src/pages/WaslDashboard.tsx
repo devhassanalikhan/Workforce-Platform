@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Plane,
   MapPin,
@@ -15,142 +15,8 @@ import {
   Building2,
   TrendingUp,
 } from 'lucide-react'
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-type WorkerStatus = 'active' | 'check-in-overdue' | 'grievance-open'
-type GrievanceSeverity = 'low' | 'medium' | 'high'
-
-interface WorkerCard {
-  id: string
-  name: string
-  role: string
-  employer: string
-  country: string
-  city: string
-  avatar: string
-  status: WorkerStatus
-  jobOrderId: string
-  deployedDate: string
-  lastCheckIn: string
-  nextCheckIn: string
-  escrowBalance: number
-  escrowCurrency: string
-  grievance?: { severity: GrievanceSeverity; summary: string; opened: string }
-  wellbeingScore: number
-}
-
-// ── Mock Data ──────────────────────────────────────────────────────────────────
-
-const workers: WorkerCard[] = [
-  {
-    id: 'w1',
-    name: 'Ali Khan',
-    role: 'Construction Supervisor',
-    employer: 'Al-Rashid Construction LLC',
-    country: 'United Arab Emirates',
-    city: 'Dubai',
-    avatar: 'AK',
-    status: 'active',
-    jobOrderId: 'JO-2841',
-    deployedDate: '22 Jun 2026',
-    lastCheckIn: '17 Jun 2026',
-    nextCheckIn: '24 Jun 2026',
-    escrowBalance: 4200,
-    escrowCurrency: 'AED',
-    wellbeingScore: 88,
-  },
-  {
-    id: 'w2',
-    name: 'Maria Santos',
-    role: 'Registered Nurse (ICU)',
-    employer: 'MedStaff Arabia',
-    country: 'Saudi Arabia',
-    city: 'Riyadh',
-    avatar: 'MS',
-    status: 'active',
-    jobOrderId: 'JO-3104',
-    deployedDate: '20 Jun 2026',
-    lastCheckIn: '16 Jun 2026',
-    nextCheckIn: '23 Jun 2026',
-    escrowBalance: 9850,
-    escrowCurrency: 'SAR',
-    wellbeingScore: 94,
-  },
-  {
-    id: 'w3',
-    name: 'Ngo Thi Lan',
-    role: 'Hotel Hospitality Associate',
-    employer: 'Nordic Hospitality Group',
-    country: 'Finland',
-    city: 'Helsinki',
-    avatar: 'NL',
-    status: 'check-in-overdue',
-    jobOrderId: 'JO-2967',
-    deployedDate: '5 Jun 2026',
-    lastCheckIn: '8 Jun 2026',
-    nextCheckIn: '15 Jun 2026 (OVERDUE)',
-    escrowBalance: 1240,
-    escrowCurrency: 'EUR',
-    wellbeingScore: 62,
-  },
-  {
-    id: 'w4',
-    name: 'Samuel Osei',
-    role: 'Logistics & Freight Coordinator',
-    employer: 'OutBack Transport Ltd',
-    country: 'Australia',
-    city: 'Sydney',
-    avatar: 'SO',
-    status: 'grievance-open',
-    jobOrderId: 'JO-3011',
-    deployedDate: '1 May 2026',
-    lastCheckIn: '15 Jun 2026',
-    nextCheckIn: '22 Jun 2026',
-    escrowBalance: 3100,
-    escrowCurrency: 'AUD',
-    grievance: {
-      severity: 'medium',
-      summary: 'Accommodation not as described in contract. Employer contacted. Awaiting resolution.',
-      opened: '12 Jun 2026',
-    },
-    wellbeingScore: 54,
-  },
-  {
-    id: 'w5',
-    name: 'Priya Sharma',
-    role: 'Electronics Assembly Technician',
-    employer: 'AutoPrecision GmbH',
-    country: 'Germany',
-    city: 'Stuttgart',
-    avatar: 'PS',
-    status: 'active',
-    jobOrderId: 'JO-3188',
-    deployedDate: '10 Jun 2026',
-    lastCheckIn: '17 Jun 2026',
-    nextCheckIn: '24 Jun 2026',
-    escrowBalance: 2800,
-    escrowCurrency: 'EUR',
-    wellbeingScore: 91,
-  },
-  {
-    id: 'w6',
-    name: 'Carlos Mendoza',
-    role: 'Renewable Energy Technician',
-    employer: 'EcoPower Nordic',
-    country: 'Norway',
-    city: 'Bergen',
-    avatar: 'CM',
-    status: 'active',
-    jobOrderId: 'JO-3244',
-    deployedDate: '14 Jun 2026',
-    lastCheckIn: '16 Jun 2026',
-    nextCheckIn: '23 Jun 2026',
-    escrowBalance: 3650,
-    escrowCurrency: 'NOK',
-    wellbeingScore: 85,
-  },
-]
+import { getDeployedWorkers } from '@/lib/data/deployments'
+import type { DeployedWorker, WorkerStatus, GrievanceSeverity } from '@/types/domain'
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 
@@ -169,8 +35,13 @@ const severityConfig: Record<GrievanceSeverity, { classes: string; label: string
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function WaslDashboard() {
+  const [workers, setWorkers] = useState<DeployedWorker[]>([])
   const [filter, setFilter]       = useState<'all' | WorkerStatus>('all')
   const [expanded, setExpanded]   = useState<string | null>(null)
+
+  useEffect(() => {
+    getDeployedWorkers().then(setWorkers)
+  }, [])
 
   const filtered = filter === 'all' ? workers : workers.filter(w => w.status === filter)
 

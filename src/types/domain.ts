@@ -88,3 +88,26 @@ export interface DeployedWorker {
   grievance?: WorkerGrievance
   wellbeingScore: number
 }
+
+export type ChecklistStatus = 'complete' | 'pending' | 'flagged'
+
+export interface PlacementChecklistItem {
+  key: string
+  label: string
+  sublabel: string
+  status: ChecklistStatus
+  detail?: string
+}
+
+// One candidate on PlacementDashboard.tsx (Stage 5 — FF OES compliance
+// handover) — a `placements` row joined with its `compliance_checklist_items`.
+export interface PlacementCandidate {
+  id: string
+  name: string
+  role: string
+  country: string
+  employer: string
+  jobOrderId: string
+  avatar: string
+  checklist: PlacementChecklistItem[]
+}

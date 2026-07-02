@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   FileCheck,
   CheckCircle2,
@@ -17,94 +17,23 @@ import {
   Plane,
   Building2,
 } from 'lucide-react'
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-
-type ChecklistStatus = 'complete' | 'pending' | 'flagged'
-
-interface ChecklistItem {
-  id: string
-  label: string
-  sublabel: string
-  icon: React.ElementType
-  status: ChecklistStatus
-  detail?: string
-}
-
-interface PlacementCandidate {
-  id: string
-  name: string
-  role: string
-  country: string
-  employer: string
-  jobOrderId: string
-  avatar: string
-  checklist: ChecklistItem[]
-}
-
-// ── Mock Data ──────────────────────────────────────────────────────────────────
-
-const candidates: PlacementCandidate[] = [
-  {
-    id: 'c1',
-    name: 'Ali Khan',
-    role: 'Construction Supervisor',
-    country: 'United Arab Emirates',
-    employer: 'Al-Rashid Construction LLC',
-    jobOrderId: 'JO-2841',
-    avatar: 'AK',
-    checklist: [
-      { id: 'docs',      label: 'Identity Documents Verified',    sublabel: 'Passport, NID, Birth Certificate',         icon: FileText,    status: 'complete', detail: 'Verified by FF OES compliance team on 12 Jun 2026' },
-      { id: 'contract',  label: 'Employment Contract Signed',      sublabel: 'Bilingual EN/AR — MOHRE compliant',         icon: FileCheck,   status: 'complete', detail: 'Contract countersigned by Al-Rashid HR on 10 Jun 2026' },
-      { id: 'medical',   label: 'Medical Fitness Clearance',       sublabel: 'GCC approved clinic — Dhaka',              icon: Stethoscope, status: 'complete', detail: 'Fitness certificate valid through Dec 2026' },
-      { id: 'visa',      label: 'UAE Work Visa Issued',            sublabel: 'Residence visa + work permit',             icon: Globe,       status: 'complete', detail: 'Visa stamped 15 Jun 2026 · Entry permit #UAE-88421' },
-      { id: 'language',  label: 'Language Proficiency Confirmed',  sublabel: 'CEFR B1 English · Basic Arabic',           icon: Languages,   status: 'complete', detail: 'CEFR result logged on Workfly Skills record' },
-      { id: 'fee',       label: 'Zero Recruitment Fee Confirmed',  sublabel: 'Candidate fee debt: AED 0.00',             icon: CreditCard,  status: 'complete', detail: 'Ethical compliance certificate issued' },
-      { id: 'flight',    label: 'Flight & Logistics Arranged',     sublabel: 'DAC → DXB · 22 Jun 2026',                 icon: Plane,       status: 'pending',  detail: 'Ticket confirmation awaited from employer' },
-      { id: 'employer',  label: 'Employer Onboarding Pack Sent',   sublabel: 'Accommodation details + site induction',  icon: Building2,   status: 'pending',  detail: 'Awaiting employer HR acknowledgment' },
-    ],
-  },
-  {
-    id: 'c2',
-    name: 'Maria Santos',
-    role: 'Registered Nurse (ICU)',
-    country: 'Saudi Arabia',
-    employer: 'MedStaff Arabia',
-    jobOrderId: 'JO-3104',
-    avatar: 'MS',
-    checklist: [
-      { id: 'docs',      label: 'Identity Documents Verified',    sublabel: 'Passport, NID, Nursing License',          icon: FileText,    status: 'complete', detail: 'Verified 5 Jun 2026' },
-      { id: 'contract',  label: 'Employment Contract Signed',      sublabel: 'Bilingual EN/AR — MOH KSA compliant',     icon: FileCheck,   status: 'complete', detail: 'Signed 7 Jun 2026' },
-      { id: 'medical',   label: 'Medical Fitness Clearance',       sublabel: 'DataFlow credential verification done',   icon: Stethoscope, status: 'complete', detail: 'DataFlow ref #DF-99021' },
-      { id: 'visa',      label: 'Saudi Work Visa Issued',          sublabel: 'Residence + nursing practice permit',     icon: Globe,       status: 'complete', detail: 'Visa: KSA-77310 · 9 Jun 2026' },
-      { id: 'language',  label: 'Language Proficiency Confirmed',  sublabel: 'IELTS 7.0 · CEFR C1',                   icon: Languages,   status: 'complete', detail: 'Score on file' },
-      { id: 'fee',       label: 'Zero Recruitment Fee Confirmed',  sublabel: 'Candidate fee debt: SAR 0.00',            icon: CreditCard,  status: 'complete', detail: 'Ethical certificate issued' },
-      { id: 'flight',    label: 'Flight & Logistics Arranged',     sublabel: 'MNL → RUH · 20 Jun 2026',               icon: Plane,       status: 'complete', detail: 'Confirmed — Philippine Airlines PR 655' },
-      { id: 'employer',  label: 'Employer Onboarding Pack Sent',   sublabel: 'Hospital orientation confirmed',          icon: Building2,   status: 'pending',  detail: 'Final briefing call scheduled 19 Jun 2026' },
-    ],
-  },
-  {
-    id: 'c3',
-    name: 'Ahmed Hassan',
-    role: 'Electrical Technician',
-    country: 'Qatar',
-    employer: 'Nexus Energy Systems',
-    jobOrderId: 'JO-3290',
-    avatar: 'AH',
-    checklist: [
-      { id: 'docs',      label: 'Identity Documents Verified',    sublabel: 'Passport, NID, Trade Certificate',        icon: FileText,    status: 'complete', detail: 'Verified 8 Jun 2026' },
-      { id: 'contract',  label: 'Employment Contract Signed',      sublabel: 'Bilingual EN/AR — Qatar Labour Law',     icon: FileCheck,   status: 'complete', detail: 'Signed 10 Jun 2026' },
-      { id: 'medical',   label: 'Medical Fitness Clearance',       sublabel: 'Hamad Medical Corp approved clinic',     icon: Stethoscope, status: 'pending',  detail: 'Appointment booked 18 Jun 2026' },
-      { id: 'visa',      label: 'Qatar Work Visa Issued',          sublabel: 'Pending medical clearance',              icon: Globe,       status: 'pending',  detail: 'Application submitted — awaiting clearance' },
-      { id: 'language',  label: 'Language Proficiency Confirmed',  sublabel: 'CEFR B2 English',                        icon: Languages,   status: 'complete', detail: 'Workfly certificate on file' },
-      { id: 'fee',       label: 'Zero Recruitment Fee Confirmed',  sublabel: 'Candidate fee debt: QAR 0.00',           icon: CreditCard,  status: 'complete', detail: 'Ethical certificate issued' },
-      { id: 'flight',    label: 'Flight & Logistics Arranged',     sublabel: 'CAI → DOH · TBD',                       icon: Plane,       status: 'flagged',  detail: 'On hold — blocked by visa' },
-      { id: 'employer',  label: 'Employer Onboarding Pack Sent',   sublabel: 'Site safety induction pending',          icon: Building2,   status: 'flagged',  detail: 'Cannot proceed until visa cleared' },
-    ],
-  },
-]
+import { getPlacementCandidates } from '@/lib/data/placementCandidates'
+import type { PlacementCandidate, PlacementChecklistItem, ChecklistStatus } from '@/types/domain'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+// Checklist item icons are keyed by `item_key` (see compliance_checklist_items
+// schema) since icon components can't come from the database.
+const CHECKLIST_ICONS: Record<string, React.ElementType> = {
+  docs: FileText,
+  contract: FileCheck,
+  medical: Stethoscope,
+  visa: Globe,
+  language: Languages,
+  fee: CreditCard,
+  flight: Plane,
+  employer: Building2,
+}
 
 const statusConfig: Record<ChecklistStatus, { icon: React.ElementType; classes: string; label: string }> = {
   complete: { icon: CheckCircle2, classes: 'text-brand-teal bg-brand-teal/10 border-brand-teal/25',   label: 'Complete' },
@@ -112,21 +41,29 @@ const statusConfig: Record<ChecklistStatus, { icon: React.ElementType; classes: 
   flagged:  { icon: AlertCircle,  classes: 'text-red-400 bg-red-500/10 border-red-500/25',             label: 'Flagged'  },
 }
 
-function completionStats(items: ChecklistItem[]) {
+function completionStats(items: PlacementChecklistItem[]) {
   const total    = items.length
   const complete = items.filter(i => i.status === 'complete').length
   const flagged  = items.filter(i => i.status === 'flagged').length
-  return { total, complete, flagged, pct: Math.round((complete / total) * 100) }
+  return { total, complete, flagged, pct: total === 0 ? 0 : Math.round((complete / total) * 100) }
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function PlacementDashboard() {
-  const [selectedId, setSelectedId] = useState(candidates[0].id)
+  const [candidates, setCandidates] = useState<PlacementCandidate[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [expanded, setExpanded]     = useState<string | null>(null)
 
-  const candidate = candidates.find(c => c.id === selectedId)!
-  const stats     = completionStats(candidate.checklist)
+  useEffect(() => {
+    getPlacementCandidates().then(data => {
+      setCandidates(data)
+      setSelectedId(data[0]?.id ?? null)
+    })
+  }, [])
+
+  const candidate = candidates.find(c => c.id === selectedId)
+  const stats     = candidate ? completionStats(candidate.checklist) : { total: 0, complete: 0, flagged: 0, pct: 0 }
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
@@ -210,7 +147,7 @@ export default function PlacementDashboard() {
                   <div className="flex gap-0.5">
                     {c.checklist.map(item => (
                       <div
-                        key={item.id}
+                        key={item.key}
                         className={`flex-1 h-1 rounded-full ${
                           item.status === 'complete' ? 'bg-brand-teal' :
                           item.status === 'pending'  ? 'bg-brand-gold/60' :
@@ -226,6 +163,7 @@ export default function PlacementDashboard() {
           </aside>
 
           {/* ── Checklist Panel ── */}
+          {candidate && (
           <main className="flex-1 min-w-0">
 
             {/* Candidate header */}
@@ -282,7 +220,7 @@ export default function PlacementDashboard() {
               <div className="flex gap-1">
                 {candidate.checklist.map(item => (
                   <div
-                    key={item.id}
+                    key={item.key}
                     className={`flex-1 h-2 rounded-full transition-all ${
                       item.status === 'complete' ? 'bg-brand-teal' :
                       item.status === 'pending'  ? 'bg-brand-gold/50' :
@@ -300,12 +238,12 @@ export default function PlacementDashboard() {
               </h3>
               {candidate.checklist.map((item) => {
                 const cfg         = statusConfig[item.status]
-                const isExpanded  = expanded === item.id
+                const isExpanded  = expanded === item.key
                 const StatusIcon  = cfg.icon
-                const ItemIcon    = item.icon
+                const ItemIcon    = CHECKLIST_ICONS[item.key] ?? FileText
                 return (
                   <div
-                    key={item.id}
+                    key={item.key}
                     className={`rounded-xl border transition-all duration-200 overflow-hidden ${
                       item.status === 'flagged' ? 'border-red-500/30 bg-red-500/5' :
                       item.status === 'pending' ? 'border-brand-gold/20 bg-card' :
@@ -314,7 +252,7 @@ export default function PlacementDashboard() {
                   >
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
-                      onClick={() => setExpanded(isExpanded ? null : item.id)}
+                      onClick={() => setExpanded(isExpanded ? null : item.key)}
                     >
                       {/* Status icon */}
                       <div className={`w-7 h-7 rounded-full border flex items-center justify-center flex-shrink-0 ${cfg.classes}`}>
@@ -367,6 +305,7 @@ export default function PlacementDashboard() {
             )}
 
           </main>
+          )}
         </div>
       </div>
     </div>

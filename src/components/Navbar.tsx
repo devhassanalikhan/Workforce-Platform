@@ -250,8 +250,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Pipeline Journey Strip ── only on pillar pages ── */}
-      {isPillarPage && (
+      {/* ── Pipeline Journey Strip ── only on pillar pages, admin-only ── */}
+      {isPillarPage && user !== null && hasRole(user.role, 'admin') && (
         <div className="border-b border-border bg-background/95 backdrop-blur-sm">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center gap-1 overflow-x-auto scrollbar-hide">
             <span className="text-[9px] font-semibold text-muted-foreground/50 uppercase tracking-[0.15em] mr-2 flex-shrink-0">

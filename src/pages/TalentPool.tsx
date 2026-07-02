@@ -287,15 +287,17 @@ export default function TalentPool() {
 
                   {/* Pipeline stage + job order — employer+ only */}
                   <div className={`mt-4 pt-4 border-t border-border transition-opacity duration-300 ${canSeePrivateFields ? 'opacity-100' : 'opacity-60'}`}>
-                    {canSeePrivateFields && talent.pipelineStage !== undefined ? (
+                    {canSeePrivateFields && talent.pipelineStage !== undefined ? (() => {
+                      const stage = talent.pipelineStage
+                      return (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <Activity className={`w-3.5 h-3.5 ${STAGE_COLORS[talent.pipelineStage].text}`} />
+                            <Activity className={`w-3.5 h-3.5 ${STAGE_COLORS[stage].text}`} />
                             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Pipeline Stage</span>
                           </div>
-                          <span className={`text-[10px] font-bold tabular-nums ${STAGE_COLORS[talent.pipelineStage].text}`}>
-                            {talent.pipelineStage} of 6
+                          <span className={`text-[10px] font-bold tabular-nums ${STAGE_COLORS[stage].text}`}>
+                            {stage} of 6
                           </span>
                         </div>
                         {/* 6-segment progress bar */}
@@ -304,17 +306,17 @@ export default function TalentPool() {
                             <div
                               key={i}
                               className={`flex-1 h-1.5 rounded-full transition-all ${
-                                i < talent.pipelineStage
-                                  ? STAGE_COLORS[talent.pipelineStage].bar
+                                i < stage
+                                  ? STAGE_COLORS[stage].bar
                                   : 'bg-border'
                               }`}
                             />
                           ))}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${STAGE_COLORS[talent.pipelineStage].text}`} />
-                          <span className={`text-[11px] font-semibold ${STAGE_COLORS[talent.pipelineStage].text}`}>
-                            Stage {talent.pipelineStage}: {STAGE_LABELS[talent.pipelineStage]}
+                          <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${STAGE_COLORS[stage].text}`} />
+                          <span className={`text-[11px] font-semibold ${STAGE_COLORS[stage].text}`}>
+                            Stage {stage}: {STAGE_LABELS[stage]}
                           </span>
                         </div>
                         {/* Job order anchor */}
@@ -330,7 +332,8 @@ export default function TalentPool() {
                           </div>
                         </div>
                       </div>
-                    ) : (
+                      )
+                    })() : (
                       <div className="flex items-center gap-2 py-1">
                         <Lock className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />
                         <span className="text-[11px] text-muted-foreground/50">

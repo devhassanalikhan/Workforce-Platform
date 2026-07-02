@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { supabase, type UserMetadata } from '@/lib/supabase'
 import { type AppRole, ROLE_HOME } from '@/lib/rbac'
-
-// ── Persona definitions ────────────────────────────────────────────────────────
 
 export interface AuthUser {
   id: string
@@ -11,80 +11,70 @@ export interface AuthUser {
   role: AppRole
 }
 
-const DEMO_PERSONAS: Record<AppRole, AuthUser> = {
-  applicant: {
-    id: 'u-001',
-    email: 'ali.khan@demo.workforcex.pk',
-    fullName: 'Ali Khan',
-    avatarInitials: 'AK',
-    role: 'applicant',
-  },
-  employer: {
-    id: 'u-002',
-    email: 'hr@alrashid-construction.ae',
-    fullName: 'Omar Al-Rashid',
-    avatarInitials: 'OA',
-    role: 'employer',
-  },
-  admin: {
-    id: 'u-003',
-    email: 'ops@workforcex.io',
-    fullName: 'M Taha',
-    avatarInitials: 'MT',
-    role: 'admin',
-  },
-  super_admin: {
-    id: 'u-004',
-    email: 'root@workforcex.io',
-    fullName: 'Hassan Ali Khan',
-    avatarInitials: 'HAK',
-    role: 'super_admin',
-  },
-}
-
-// ── Context definition ─────────────────────────────────────────────────────────
-
 interface AuthContextValue {
   user: AuthUser | null
   isLoading: boolean
-  signIn: (role: AppRole) => void
-  signOut: () => void
-  /** Resolved destination after a role-based login */
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signOut: () => Promise<void>
   getHomeForRole: (role: AppRole) => string
 }
 
-const STORAGE_KEY = 'wfx_session'
-
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-// ── Provider ───────────────────────────────────────────────────────────────────
+function sessionToUser(session: Session): AuthUser | null {
+  const meta = session.user.user_metadata as Partial<UserMetadata>
+  const role = meta.role
+  if (!role) return null
+
+  const fullName = meta.full_name ?? session.user.email ?? 'User'
+  const initials = fullName
+    .split(' ')
+    .map((w: string) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 3)
+
+  return {
+    id: session.user.id,
+    email: session.user.email ?? '',
+    fullName,
+    avatarInitials: initials,
+    role,
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Rehydrate session on mount (survives page refresh within the tab)
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        setUser(JSON.parse(stored) as AuthUser)
-      }
-    } catch {
-      // Corrupt storage — ignore and start fresh
-    }
-    setIsLoading(false)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session ? sessionToUser(session) : null)
+      setIsLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session ? sessionToUser(session) : null)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  function signIn(role: AppRole) {
-    const persona = DEMO_PERSONAS[role]
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persona))
-    setUser(persona)
+  async function signIn(email: string, password: string): Promise<{ error: string | null }> {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) return { error: error.message }
+    if (!data.session) return { error: 'Sign-in succeeded but no session was returned.' }
+
+    const authUser = sessionToUser(data.session)
+    if (!authUser) {
+      await supabase.auth.signOut()
+      return { error: 'Your account has no role assigned. Contact an administrator.' }
+    }
+    return { error: null }
   }
 
-  function signOut() {
-    sessionStorage.removeItem(STORAGE_KEY)
-    setUser(null)
+  async function signOut(): Promise<void> {
+    await supabase.auth.signOut()
   }
 
   function getHomeForRole(role: AppRole): string {
@@ -97,8 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   )
 }
-
-// ── Hook ───────────────────────────────────────────────────────────────────────
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Search,
   MapPin,
@@ -19,6 +19,8 @@ import {
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
 import { hasRole } from '@/lib/rbac'
+import { getTalent } from '@/lib/data/talent'
+import type { TalentProfile } from '@/types/domain'
 
 const filters = [
   { label: 'All Skills', count: 12450 },
@@ -49,104 +51,6 @@ const STAGE_COLORS: Record<number, { bar: string; badge: string; text: string }>
   6: { bar: 'bg-violet-500',  badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',   text: 'text-violet-400'  },
 }
 
-const talents = [
-  {
-    id: 1,
-    name: 'Muhammad Tariq',
-    photo: '/images/talent-1.jpg',
-    role: 'HVAC Senior Technician',
-    location: 'Rawalpindi, Punjab',
-    experience: '9 years',
-    skills: ['HVAC Installation', 'Refrigeration Systems', 'Ductwork Fabrication', 'Preventive Maintenance'],
-    languages: ['Urdu', 'Punjabi', 'Arabic (Basic)'],
-    certifications: ['DAE (Mechanical) — 3 Year Diploma', 'NAVTTC Verified Trade Test', 'HVAC Safety Protocol'],
-    aiReadiness: 91,
-    verified: true,
-    available: true,
-    badge: 'Top Rated',
-    pipelineStage: 3,
-    jobOrderId: 'JO-4471',
-    jobOrderTitle: 'HVAC Senior Technician',
-    jobOrderCountry: 'Abu Dhabi, UAE',
-  },
-  {
-    id: 2,
-    name: 'Zainab Bibi',
-    photo: '/images/talent-2.jpg',
-    role: 'Registered Nurse (ICU Specialization)',
-    location: 'Peshawar, Khyber Pakhtunkhwa',
-    experience: '6 years',
-    skills: ['ICU Patient Care', 'Ventilator Management', 'IV Therapy', 'Emergency Triage'],
-    languages: ['Urdu', 'Pashto', 'English'],
-    certifications: ['BSc Nursing — Certified Health Assistant', 'BLS Certified', 'ICU Critical Care Module'],
-    aiReadiness: 93,
-    verified: true,
-    available: true,
-    badge: 'Healthcare Star',
-    pipelineStage: 5,
-    jobOrderId: 'JO-2293',
-    jobOrderTitle: 'ICU Registered Nurse',
-    jobOrderCountry: 'Riyadh, KSA',
-  },
-  {
-    id: 3,
-    name: 'Ahmed Raza',
-    photo: '/images/talent-3.jpg',
-    role: 'Precision CNC Machinist & Welder',
-    location: 'Sialkot, Punjab',
-    experience: '7 years',
-    skills: ['CNC Operation', 'TIG Welding', 'Precision Machining', 'Quality Inspection'],
-    languages: ['Urdu', 'Punjabi', 'English (Basic)'],
-    certifications: ['G-II Level Industrial Certification', 'ISO 9606 Welding', 'TEVTA Trade Test'],
-    aiReadiness: 88,
-    verified: true,
-    available: true,
-    badge: null,
-    pipelineStage: 2,
-    jobOrderId: 'JO-3814',
-    jobOrderTitle: 'CNC Machinist & Welder',
-    jobOrderCountry: 'Dammam, KSA',
-  },
-  {
-    id: 4,
-    name: 'Bilal Siddiqui',
-    photo: '/images/talent-4.jpg',
-    role: 'Hotel Operations & Front Office Supervisor',
-    location: 'Karachi, Sindh',
-    experience: '5 years',
-    skills: ['Front Desk Operations', 'Guest Relations', 'PMS Systems', 'Revenue Management'],
-    languages: ['Urdu', 'Sindhi', 'English'],
-    certifications: ['Hospitality Management Certification', 'AHLEI Certificate', 'Revenue Management Diploma'],
-    aiReadiness: 90,
-    verified: true,
-    available: false,
-    badge: 'Hospitality Pro',
-    pipelineStage: 6,
-    jobOrderId: 'JO-1047',
-    jobOrderTitle: 'Front Office Supervisor',
-    jobOrderCountry: 'Dubai, UAE',
-  },
-  {
-    id: 5,
-    name: 'Asif Mahmood',
-    photo: '/images/talent-5.jpg',
-    role: 'Industrial Electrician & Automation Lineman',
-    location: 'Faisalabad, Punjab',
-    experience: '11 years',
-    skills: ['Industrial Wiring', 'PLC Programming', 'Automation Systems', 'Electrical Diagnostics'],
-    languages: ['Urdu', 'Punjabi', 'Arabic (Basic)'],
-    certifications: ['G-III Certificate in Electrical Automation', 'NAVTTC Trade Test Level III', 'Siemens PLC Module'],
-    aiReadiness: 95,
-    verified: true,
-    available: true,
-    badge: 'Elite Talent',
-    pipelineStage: 4,
-    jobOrderId: 'JO-3388',
-    jobOrderTitle: 'Industrial Electrician — Automation',
-    jobOrderCountry: 'Jubail Industrial City, KSA',
-  },
-]
-
 const stats = [
   { label: 'Verified Profiles', value: '12,450+', icon: ShieldCheck },
   { label: 'AI-Scored', value: '100%', icon: Sparkles },
@@ -155,6 +59,7 @@ const stats = [
 ]
 
 export default function TalentPool() {
+  const [talents, setTalents] = useState<TalentProfile[]>([])
   const [activeFilter, setActiveFilter] = useState('All Skills')
   const [searchQuery, setSearchQuery] = useState('')
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
@@ -162,6 +67,10 @@ export default function TalentPool() {
 
   // Employer-tier fields: AI score, pipeline stage, job order details
   const canSeePrivateFields = user !== null && hasRole(user.role, 'employer')
+
+  useEffect(() => {
+    getTalent(canSeePrivateFields).then(setTalents)
+  }, [canSeePrivateFields])
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
@@ -367,7 +276,7 @@ export default function TalentPool() {
 
                   {/* AI Readiness — employer+ only */}
                   <div className={`pt-4 border-t border-border transition-opacity duration-300 ${canSeePrivateFields ? 'opacity-100' : 'opacity-60'}`}>
-                    {canSeePrivateFields ? (
+                    {canSeePrivateFields && talent.aiReadiness !== undefined ? (
                       <>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-1.5">
@@ -395,7 +304,7 @@ export default function TalentPool() {
 
                   {/* Pipeline stage + job order — employer+ only */}
                   <div className={`mt-4 pt-4 border-t border-border transition-opacity duration-300 ${canSeePrivateFields ? 'opacity-100' : 'opacity-60'}`}>
-                    {canSeePrivateFields ? (
+                    {canSeePrivateFields && talent.pipelineStage !== undefined ? (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">

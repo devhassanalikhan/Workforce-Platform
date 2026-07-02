@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Building2,
   ShieldCheck,
@@ -22,6 +23,9 @@ import {
 } from 'lucide-react'
 import { useScrollAnimation, useStaggerAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
+import { getActiveJobOrder } from '@/lib/data/employer'
+import type { ActiveJobOrder } from '@/types/domain'
+import { STAGE_LABELS, TOTAL_STAGES } from '@/lib/pipelineStages'
 
 const features = [
   {
@@ -146,7 +150,16 @@ const plans = [
   },
 ]
 
-// ── Al-Rashid Construction LLC — JO-2841 scoped data ─────────────────────────
+// ── Hero mockup data — decorative only, shown to every visitor regardless of
+// role, so it stays static rather than querying real (potentially another
+// employer's) placement data. The real "Active Job Orders" section further
+// down fetches actual data via getActiveJobOrder().
+//
+// NOTE: the Sourced/Screened/Shortlist/Confirmed funnel counts below have no
+// equivalent in the current schema — `placements.stage` only models the
+// 6-stage journey from Job Order Matched onward, not the pre-placement
+// sourcing funnel. Flagging this gap rather than fabricating a table for it;
+// decide separately whether that funnel needs its own tracking.
 
 const JO_PIPELINE = [
   { label: 'Sourced',   count: 12, color: 'bg-brand-gold'  },
@@ -181,6 +194,12 @@ const JO_COMPLIANCE_ITEMS = [
 export default function EmployerEnterprise() {
   const { user } = useAuth()
   const isEmployer = user?.role === 'employer'
+  const [activeJobOrder, setActiveJobOrder] = useState<ActiveJobOrder | null>(null)
+
+  useEffect(() => {
+    if (!isEmployer) return
+    getActiveJobOrder().then(setActiveJobOrder)
+  }, [isEmployer])
 
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
   const { ref: featuresRef, isVisible: featuresVisible } = useStaggerAnimation(6, 0.08)
@@ -318,8 +337,8 @@ export default function EmployerEnterprise() {
         </div>
       </section>
 
-      {/* ── JO-2841 Active Placement Portal — visible to employer only ─────── */}
-      {isEmployer && (
+      {/* ── Active Placement Portal — visible to employer only, real data ──── */}
+      {isEmployer && activeJobOrder && (
         <section className="py-8 border-b border-border bg-card/30">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
 
@@ -327,7 +346,7 @@ export default function EmployerEnterprise() {
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block mb-1">
-                  Al-Rashid Construction LLC
+                  Employer Portal
                 </span>
                 <h2 className="text-base font-bold text-card-foreground">Active Job Orders</h2>
               </div>
@@ -337,7 +356,7 @@ export default function EmployerEnterprise() {
               </div>
             </div>
 
-            {/* JO-2841 card */}
+            {/* Job order card */}
             <div className="rounded-2xl bg-card border border-border overflow-hidden">
               {/* Card header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
@@ -347,15 +366,15 @@ export default function EmployerEnterprise() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold text-card-foreground tabular-nums">JO-2841</span>
+                      <span className="text-[13px] font-bold text-card-foreground tabular-nums">{activeJobOrder.jobOrderCode}</span>
                       <span className="text-[9px] font-bold text-brand-gold bg-brand-gold/10 border border-brand-gold/20 px-1.5 py-0.5 rounded-full">ACTIVE</span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">Construction Supervisor · Dubai, UAE</div>
+                    <div className="text-[11px] text-muted-foreground">{activeJobOrder.jobTitle} · {activeJobOrder.destination}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>Dubai, UAE</span>
+                  <span>{activeJobOrder.destination}</span>
                 </div>
               </div>
 
@@ -368,25 +387,25 @@ export default function EmployerEnterprise() {
                   </span>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-sm font-bold text-brand-gold tabular-nums flex-shrink-0">
-                      {JO_CANDIDATE.initials}
+                      {activeJobOrder.candidateInitials}
                     </div>
                     <div>
-                      <div className="text-sm font-semibold text-card-foreground">{JO_CANDIDATE.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{JO_CANDIDATE.trade}</div>
+                      <div className="text-sm font-semibold text-card-foreground">{activeJobOrder.candidateName}</div>
+                      <div className="text-[11px] text-muted-foreground">{activeJobOrder.jobTitle}</div>
                     </div>
                   </div>
                   <div className="space-y-1.5 text-[11px] text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                      <span>{JO_CANDIDATE.origin}</span>
+                      <span>{activeJobOrder.origin}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Globe className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                      <span>Destination: {JO_CANDIDATE.destination}</span>
+                      <span>Destination: {activeJobOrder.destination}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Zap className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                      <span className="tabular-nums">AI Match: {JO_CANDIDATE.aiScore}%</span>
+                      <span className="tabular-nums">AI Match: {activeJobOrder.aiScore}%</span>
                     </div>
                   </div>
                 </div>
@@ -397,20 +416,22 @@ export default function EmployerEnterprise() {
                     Placement Journey
                   </span>
                   <div className="flex gap-1">
-                    {Array.from({ length: JO_CANDIDATE.totalStages }, (_, i) => i + 1).map(step => (
+                    {Array.from({ length: TOTAL_STAGES }, (_, i) => i + 1).map(step => (
                       <div
                         key={step}
                         className={`flex-1 h-2 rounded-full ${
-                          step < JO_CANDIDATE.stage  ? 'bg-brand-teal' :
-                          step === JO_CANDIDATE.stage ? 'bg-brand-gold' :
-                                                        'bg-border'
+                          step < activeJobOrder.stage  ? 'bg-brand-teal' :
+                          step === activeJobOrder.stage ? 'bg-brand-gold' :
+                                                          'bg-border'
                         }`}
                       />
                     ))}
                   </div>
                   <div className="text-[11px] text-brand-gold font-semibold tabular-nums">
-                    Stage {JO_CANDIDATE.stage} of {JO_CANDIDATE.totalStages} — {JO_CANDIDATE.stageLabel}
+                    Stage {activeJobOrder.stage} of {TOTAL_STAGES} — {STAGE_LABELS[activeJobOrder.stage]}
                   </div>
+                  {/* Sourcing funnel — not yet modeled in the schema, stays as
+                      illustrative mock data (see NOTE above JO_PIPELINE) */}
                   <div className="space-y-1.5">
                     {JO_PIPELINE.map(item => (
                       <div key={item.label} className="flex items-center gap-2">
@@ -430,16 +451,21 @@ export default function EmployerEnterprise() {
                     Document Status
                   </span>
                   <div className="space-y-2">
-                    {JO_COMPLIANCE_ITEMS.map(item => (
+                    {activeJobOrder.complianceItems.map(item => (
                       <div key={item.label} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FileText className="w-3 h-3 text-muted-foreground" />
                           <span className="text-[12px] text-muted-foreground">{item.label}</span>
                         </div>
-                        {item.status === 'done' ? (
+                        {item.status === 'complete' ? (
                           <div className="flex items-center gap-1 text-brand-teal">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-semibold">Verified</span>
+                          </div>
+                        ) : item.status === 'flagged' ? (
+                          <div className="flex items-center gap-1 text-red-400">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-semibold">Flagged</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-1 text-brand-gold">

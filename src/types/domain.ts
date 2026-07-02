@@ -38,3 +38,23 @@ export interface TalentProfile {
   jobOrderTitle?: string
   jobOrderCountry?: string
 }
+
+export interface ComplianceItem {
+  label: string
+  status: 'complete' | 'pending' | 'flagged'
+}
+
+// The employer-facing "active job order" snapshot on EmployerEnterprise.tsx —
+// one placement (a talent matched against one of the employer's jobs) plus
+// its compliance checklist.
+export interface ActiveJobOrder {
+  jobOrderCode: string
+  candidateName: string
+  candidateInitials: string
+  origin: string
+  destination: string
+  aiScore: number
+  stage: number
+  jobTitle: string
+  complianceItems: ComplianceItem[]
+}

@@ -14,4 +14,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface UserMetadata {
   full_name: string
   role: AppRole
+  // Only present on employer signups — read by the handle_new_employer()
+  // Postgres trigger to name the company row it creates.
+  company_name?: string
 }

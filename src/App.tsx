@@ -15,6 +15,7 @@ const AboutTrust       = lazy(() => import('./pages/AboutTrust'))
 const AiAssistant      = lazy(() => import('./pages/AiAssistant'))
 const BlogResources    = lazy(() => import('./pages/BlogResources'))
 const LoginPage        = lazy(() => import('./pages/LoginPage'))
+const SignupPage       = lazy(() => import('./pages/SignupPage'))
 
 // ── Auth-gated pages ───────────────────────────────────────────────────────────
 const ApplicantDashboard = lazy(() => import('./pages/Dashboard'))
@@ -40,6 +41,7 @@ function App() {
                 <Route path="/ai-assistant" element={<AiAssistant />} />
                 <Route path="/blog"        element={<BlogResources />} />
                 <Route path="/login"       element={<LoginPage />} />
+                <Route path="/signup"      element={<SignupPage />} />
 
                 {/* ── applicant+ ─────────────────────────────────────────── */}
                 <Route path="/dashboard" element={

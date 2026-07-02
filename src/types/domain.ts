@@ -111,3 +111,25 @@ export interface PlacementCandidate {
   avatar: string
   checklist: PlacementChecklistItem[]
 }
+
+// A course on SkillsTraining.tsx — sourced from training_courses.
+// `progress` is always 0 for now: real per-user progress needs
+// training_enrollments joined against the signed-in applicant, which isn't
+// wired up yet (no applicant course-taking flow exists either).
+export interface Course {
+  id: string
+  title: string
+  category: string
+  image: string
+  duration: string
+  level: string
+  enrolled: number
+  rating: number
+  provider: string
+  price: string
+  description: string
+  modules: number
+  certification: string
+  skills: string[]
+  progress: number
+}

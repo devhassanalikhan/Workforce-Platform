@@ -133,3 +133,19 @@ export interface Course {
   skills: string[]
   progress: number
 }
+
+// An article on BlogResources.tsx — sourced from blog_articles. Note: the
+// page's separate `featuredArticle` hero (with author/authorRole) stays
+// static — blog_articles has no author columns, so wiring it would mean
+// either extending the schema or dropping author info; flagged rather than
+// silently doing either.
+export interface Article {
+  id: string
+  title: string
+  excerpt: string
+  image: string
+  category: string
+  readTime: string
+  date: string
+  trending: boolean
+}

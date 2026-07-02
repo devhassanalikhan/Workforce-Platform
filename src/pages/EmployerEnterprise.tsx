@@ -184,13 +184,6 @@ const JO_CANDIDATE = {
   contract:   'Countersigned',
 }
 
-const JO_COMPLIANCE_ITEMS = [
-  { label: 'Employment Contract', status: 'done'    as const },
-  { label: 'Medical Clearance',   status: 'done'    as const },
-  { label: 'UAE Work Visa',       status: 'done'    as const },
-  { label: 'Flight & Logistics',  status: 'pending' as const },
-]
-
 export default function EmployerEnterprise() {
   const { user } = useAuth()
   const isEmployer = user?.role === 'employer'

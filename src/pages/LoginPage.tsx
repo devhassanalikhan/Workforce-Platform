@@ -116,8 +116,9 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <p className="text-[10px] text-muted-foreground/50 text-center mt-5 leading-relaxed">
-              Access is role-based. Contact an administrator if you need an account.
+            <p className="text-[12px] text-muted-foreground text-center mt-5">
+              Don't have an account?{' '}
+              <a href="/signup" className="text-brand-gold hover:underline">Sign up</a>
             </p>
           </div>
         </div>

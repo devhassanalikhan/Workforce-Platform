@@ -11,10 +11,17 @@ export interface AuthUser {
   role: AppRole
 }
 
+interface SignUpMetadata {
+  role: AppRole
+  full_name: string
+  company_name?: string
+}
+
 interface AuthContextValue {
   user: AuthUser | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<{ error: string | null; needsEmailVerification: boolean }>
   signOut: () => Promise<void>
   getHomeForRole: (role: AppRole) => string
 }
@@ -73,6 +80,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null }
   }
 
+  async function signUp(
+    email: string,
+    password: string,
+    metadata: SignUpMetadata
+  ): Promise<{ error: string | null; needsEmailVerification: boolean }> {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: metadata },
+    })
+    if (error) return { error: error.message, needsEmailVerification: false }
+    // If Supabase's "Confirm email" setting is on, signUp succeeds but
+    // returns no session until the user clicks the verification link.
+    return { error: null, needsEmailVerification: !data.session }
+  }
+
   async function signOut(): Promise<void> {
     await supabase.auth.signOut()
   }
@@ -82,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signOut, getHomeForRole }}>
+    <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut, getHomeForRole }}>
       {children}
     </AuthContext.Provider>
   )

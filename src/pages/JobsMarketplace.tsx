@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Search,
   SlidersHorizontal,
@@ -16,6 +16,8 @@ import {
   Globe,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { getJobs } from '@/lib/data/jobs'
+import type { Job } from '@/types/domain'
 
 const jobCategories = [
   'All Categories',
@@ -46,146 +48,8 @@ const contractTypes = ['All Types', 'Full-time', 'Contract', 'Temporary', 'Seaso
 const salaryRanges = ['All Ranges', '$1,000 - $2,000', '$2,000 - $3,500', '$3,500 - $5,000', '$5,000+']
 const sortOptions = ['Relevance', 'Salary: High to Low', 'Salary: Low to High', 'Newest', 'Most Applied']
 
-const jobs = [
-  {
-    id: 1,
-    title: 'Senior Construction Supervisor',
-    company: 'Al Rashid Group',
-    logo: '/images/logo-alrashid.png',
-    location: 'Dubai, UAE',
-    salary: '$3,500 - $4,500/mo',
-    type: 'Full-time',
-    category: 'Construction',
-    experience: 'Senior Level',
-    posted: '2 days ago',
-    description: 'Oversee large-scale commercial construction projects with a team of 50+ workers. Requires 5+ years experience in GCC construction.',
-    requirements: ['5+ years GCC experience', 'Civil Engineering degree', 'Arabic preferred'],
-    aiMatch: 94,
-    saved: false,
-    hot: true,
-  },
-  {
-    id: 2,
-    title: 'Registered Nurse - ICU',
-    company: 'Med Staff Pro',
-    logo: '/images/logo-medstaff.png',
-    location: 'Riyadh, Saudi Arabia',
-    salary: '$4,200 - $5,800/mo',
-    type: 'Full-time',
-    category: 'Healthcare',
-    experience: 'Mid Level',
-    posted: '1 day ago',
-    description: 'Join a state-of-the-art 400-bed tertiary care hospital. Handle critical care patients in our 24-bed ICU unit.',
-    requirements: ['BSN degree', '2+ years ICU experience', 'Valid nursing license'],
-    aiMatch: 91,
-    saved: false,
-    hot: true,
-  },
-  {
-    id: 3,
-    title: 'Electronics Assembly Technician',
-    company: 'Nexus Tech',
-    logo: '/images/logo-nexus.png',
-    location: 'Tokyo, Japan',
-    salary: '$2,800 - $3,600/mo',
-    type: 'Full-time',
-    category: 'Manufacturing',
-    experience: 'Entry Level',
-    posted: '3 days ago',
-    description: 'Work in a cutting-edge semiconductor fabrication facility. Full training provided including Japanese language courses.',
-    requirements: ['Technical diploma', 'Attention to detail', 'Willing to learn Japanese'],
-    aiMatch: 88,
-    saved: false,
-    hot: false,
-  },
-  {
-    id: 4,
-    title: 'Hotel Operations Manager',
-    company: 'Nordic Hospitality',
-    logo: '/images/logo-nordic.png',
-    location: 'Oslo, Norway',
-    salary: '$5,500 - $7,000/mo',
-    type: 'Full-time',
-    category: 'Hospitality',
-    experience: 'Senior Level',
-    posted: '5 days ago',
-    description: 'Manage daily operations of a 200-room luxury hotel. Lead a multicultural team of 80+ staff members.',
-    requirements: ['Hospitality degree', '5+ years hotel management', 'English fluent, Nordic languages a plus'],
-    aiMatch: 87,
-    saved: false,
-    hot: false,
-  },
-  {
-    id: 5,
-    title: 'Warehouse Logistics Coordinator',
-    company: 'Transport Logistics',
-    logo: '/images/logo-transport.png',
-    location: 'Toronto, Canada',
-    salary: '$3,200 - $4,000/mo',
-    type: 'Full-time',
-    category: 'Logistics',
-    experience: 'Mid Level',
-    posted: '1 day ago',
-    description: 'Coordinate inbound and outbound logistics for a major e-commerce distribution center serving Eastern Canada.',
-    requirements: ['Supply Chain certification', '3+ years warehouse experience', 'WMS software knowledge'],
-    aiMatch: 92,
-    saved: false,
-    hot: true,
-  },
-  {
-    id: 6,
-    title: 'Renewable Energy Technician',
-    company: 'Eco Power',
-    logo: '/images/logo-ecopower.png',
-    location: 'Berlin, Germany',
-    salary: '$3,800 - $4,800/mo',
-    type: 'Contract',
-    category: 'Engineering',
-    experience: 'Mid Level',
-    posted: '4 days ago',
-    description: 'Install and maintain wind turbine systems across Northern Germany. Work with cutting-edge renewable technology.',
-    requirements: ['Electrical/Mechanical background', 'Height work certification', 'German A2 minimum'],
-    aiMatch: 85,
-    saved: false,
-    hot: false,
-  },
-  {
-    id: 7,
-    title: 'Mining Equipment Operator',
-    company: 'Outback Resources',
-    logo: '/images/logo-outback.png',
-    location: 'Perth, Australia',
-    salary: '$6,500 - $8,500/mo',
-    type: 'Full-time',
-    category: 'Engineering',
-    experience: 'Senior Level',
-    posted: '2 days ago',
-    description: 'Operate heavy mining equipment at a large-scale iron ore operation in the Pilbara region. FIFO roster 2:1.',
-    requirements: ['Heavy machinery license', '5+ years mining experience', 'Safety-first mentality'],
-    aiMatch: 89,
-    saved: false,
-    hot: true,
-  },
-  {
-    id: 8,
-    title: 'Automotive Quality Inspector',
-    company: 'Auto Precision',
-    logo: '/images/logo-autoprecision.png',
-    location: 'Nagoya, Japan',
-    salary: '$2,500 - $3,200/mo',
-    type: 'Full-time',
-    category: 'Manufacturing',
-    experience: 'Entry Level',
-    posted: '6 days ago',
-    description: 'Quality control inspection for precision automotive components. Training provided in lean manufacturing principles.',
-    requirements: ['High school diploma', 'Detail-oriented', 'Basic technical aptitude'],
-    aiMatch: 93,
-    saved: false,
-    hot: false,
-  },
-]
-
 export default function JobsMarketplace() {
+  const [jobs, setJobs] = useState<Job[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
   const [selectedLocation, setSelectedLocation] = useState('All Locations')
@@ -193,11 +57,15 @@ export default function JobsMarketplace() {
   const [selectedType, setSelectedType] = useState('All Types')
   const [selectedSalary, setSelectedSalary] = useState('All Ranges')
   const [sortBy, setSortBy] = useState('Relevance')
-  const [savedJobs, setSavedJobs] = useState<number[]>([])
+  const [savedJobs, setSavedJobs] = useState<string[]>([])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
 
-  const toggleSave = (id: number) => {
+  useEffect(() => {
+    getJobs().then(setJobs)
+  }, [])
+
+  const toggleSave = (id: string) => {
     setSavedJobs(prev => prev.includes(id) ? prev.filter(j => j !== id) : [...prev, id])
   }
 

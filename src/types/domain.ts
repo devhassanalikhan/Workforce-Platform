@@ -58,3 +58,33 @@ export interface ActiveJobOrder {
   jobTitle: string
   complianceItems: ComplianceItem[]
 }
+
+export type WorkerStatus = 'active' | 'check-in-overdue' | 'grievance-open'
+export type GrievanceSeverity = 'low' | 'medium' | 'high'
+
+export interface WorkerGrievance {
+  severity: GrievanceSeverity
+  summary: string
+  opened: string
+}
+
+// One deployed worker on WaslDashboard.tsx — a `deployments` row (Stage 6 of
+// a placement) joined with the talent, job, and employer it belongs to.
+export interface DeployedWorker {
+  id: string
+  name: string
+  role: string
+  employer: string
+  country: string
+  city: string
+  avatar: string
+  status: WorkerStatus
+  jobOrderId: string
+  deployedDate: string
+  lastCheckIn: string
+  nextCheckIn: string
+  escrowBalance: number
+  escrowCurrency: string
+  grievance?: WorkerGrievance
+  wellbeingScore: number
+}

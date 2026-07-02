@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { mockActiveJobOrder } from '@/data/mockActiveJobOrder'
 import type { ActiveJobOrder, ComplianceItem } from '@/types/domain'
+import { initialsOf } from '@/lib/initials'
 
 interface PlacementWithJoinsRow {
   id: string
@@ -14,16 +15,6 @@ interface PlacementWithJoinsRow {
 interface ComplianceItemRow {
   label: string
   status: 'complete' | 'pending' | 'flagged'
-}
-
-function initialsOf(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
 }
 
 // Falls back to the bundled demo job order whenever the caller's company has

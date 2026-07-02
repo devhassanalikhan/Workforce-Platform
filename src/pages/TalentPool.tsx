@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { hasRole } from '@/lib/rbac'
 import { getTalent } from '@/lib/data/talent'
 import type { TalentProfile } from '@/types/domain'
+import { STAGE_LABELS, STAGE_COLORS } from '@/lib/pipelineStages'
 
 const filters = [
   { label: 'All Skills', count: 12450 },
@@ -32,24 +33,6 @@ const filters = [
   { label: 'Logistics', count: 980 },
   { label: 'Digital Skills', count: 1090 },
 ]
-
-const STAGE_LABELS: Record<number, string> = {
-  1: 'Job Order Matched',
-  2: 'Profile Screened',
-  3: 'Training Enrolled',
-  4: 'Readiness Cleared',
-  5: 'Handed to FF OES',
-  6: 'Deployed',
-}
-
-const STAGE_COLORS: Record<number, { bar: string; badge: string; text: string }> = {
-  1: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
-  2: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
-  3: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
-  4: { bar: 'bg-brand-teal',  badge: 'bg-brand-teal/10 text-brand-teal border-brand-teal/20',   text: 'text-brand-teal'  },
-  5: { bar: 'bg-brand-gold',  badge: 'bg-brand-gold/10 text-brand-gold border-brand-gold/20',   text: 'text-brand-gold'  },
-  6: { bar: 'bg-violet-500',  badge: 'bg-violet-500/10 text-violet-400 border-violet-500/20',   text: 'text-violet-400'  },
-}
 
 const stats = [
   { label: 'Verified Profiles', value: '12,450+', icon: ShieldCheck },

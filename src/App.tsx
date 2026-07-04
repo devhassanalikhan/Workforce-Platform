@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router'
 import { Suspense, lazy } from 'react'
+import { Toaster } from 'sonner'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingScreen from './components/LoadingScreen'
@@ -78,6 +79,7 @@ function App() {
             </Suspense>
           </main>
           <Footer />
+          <Toaster position="bottom-right" richColors />
         </div>
       </AuthProvider>
     </ThemeProvider>

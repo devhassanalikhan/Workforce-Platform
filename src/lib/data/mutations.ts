@@ -254,6 +254,24 @@ export async function updateCourseProgress(
   return { data: null, error: error?.message ?? null }
 }
 
+// ── Saved Jobs ─────────────────────────────────────────────────────────────────
+
+export async function saveJob(userId: string, jobId: string): Promise<MutationResult> {
+  const { error } = await supabase
+    .from('saved_jobs')
+    .insert({ user_id: userId, job_id: jobId })
+  return { data: null, error: error?.message ?? null }
+}
+
+export async function unsaveJob(userId: string, jobId: string): Promise<MutationResult> {
+  const { error } = await supabase
+    .from('saved_jobs')
+    .delete()
+    .eq('user_id', userId)
+    .eq('job_id', jobId)
+  return { data: null, error: error?.message ?? null }
+}
+
 // ── Blog Articles ──────────────────────────────────────────────────────────────
 
 export interface ArticlePayload {

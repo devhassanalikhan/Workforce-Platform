@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Building2,
   ShieldCheck,
@@ -24,8 +24,10 @@ import {
 import { useScrollAnimation, useStaggerAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
 import { getActiveJobOrder } from '@/lib/data/employer'
+import { supabase } from '@/lib/supabase'
 import type { ActiveJobOrder } from '@/types/domain'
 import { STAGE_LABELS, TOTAL_STAGES } from '@/lib/pipelineStages'
+import JobFormDialog from '@/components/jobs/JobFormDialog'
 
 const features = [
   {
@@ -188,11 +190,26 @@ export default function EmployerEnterprise() {
   const { user } = useAuth()
   const isEmployer = user?.role === 'employer'
   const [activeJobOrder, setActiveJobOrder] = useState<ActiveJobOrder | null>(null)
+  const [companyId, setCompanyId]           = useState<string | null>(null)
+  const [jobFormOpen, setJobFormOpen]       = useState(false)
 
   useEffect(() => {
-    if (!isEmployer) return
+    if (!isEmployer || !user) return
     getActiveJobOrder().then(setActiveJobOrder)
-  }, [isEmployer])
+    // Fetch the employer's company_id from company_members
+    supabase
+      .from('company_members')
+      .select('company_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setCompanyId(data.company_id) })
+  }, [isEmployer, user])
+
+  const openJobForm = useCallback(() => setJobFormOpen(true), [])
+  const handleJobSuccess = useCallback(() => {
+    // Refresh active job order after a new job is posted
+    getActiveJobOrder().then(setActiveJobOrder)
+  }, [])
 
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
   const { ref: featuresRef, isVisible: featuresVisible } = useStaggerAnimation(6, 0.08)
@@ -229,7 +246,10 @@ export default function EmployerEnterprise() {
                 reduces hiring time, and builds long-term workforce partnerships.
               </p>
               <div className="flex flex-wrap gap-3">
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
+                <button
+                  onClick={isEmployer ? openJobForm : undefined}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
+                >
                   <Sparkles className="w-4 h-4" />
                   Post a Job Now
                 </button>
@@ -702,7 +722,10 @@ export default function EmployerEnterprise() {
                     surface pre-verified candidates within 48 hours.
                   </p>
                   <div className="flex flex-wrap justify-center gap-3">
-                    <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
+                    <button
+                      onClick={openJobForm}
+                      className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
+                    >
                       <Sparkles className="w-4 h-4" />
                       Post a New Job Order
                     </button>
@@ -722,7 +745,10 @@ export default function EmployerEnterprise() {
                     global teams. Start with a free job posting today.
                   </p>
                   <div className="flex flex-wrap justify-center gap-3">
-                    <button className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow">
+                    <button
+                      onClick={openJobForm}
+                      className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
+                    >
                       <Sparkles className="w-4 h-4" />
                       Post Your First Job
                     </button>
@@ -737,6 +763,15 @@ export default function EmployerEnterprise() {
           </div>
         </div>
       </section>
+      {/* ── Job Form Dialog ──────────────────────────────────────────────────── */}
+      {isEmployer && companyId && (
+        <JobFormDialog
+          open={jobFormOpen}
+          onOpenChange={setJobFormOpen}
+          companyId={companyId}
+          onSuccess={handleJobSuccess}
+        />
+      )}
     </div>
   )
 }

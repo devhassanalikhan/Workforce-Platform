@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, type UserMetadata } from '@/lib/supabase'
-import { type AppRole, ROLE_HOME } from '@/lib/rbac'
+import { type AppRole, ROLE_HOME, normalizeRole } from '@/lib/rbac'
 
 export interface AuthUser {
   id: string
@@ -12,8 +12,8 @@ export interface AuthUser {
 }
 
 interface SignUpMetadata {
-  role: AppRole
-  full_name: string
+  role?: AppRole
+  full_name?: string
   company_name?: string
 }
 
@@ -30,8 +30,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function sessionToUser(session: Session): AuthUser | null {
   const meta = session.user.user_metadata as Partial<UserMetadata>
-  const role = meta.role
-  if (!role) return null
+  const role = normalizeRole(meta.role)
 
   const fullName = meta.full_name ?? session.user.email ?? 'User'
   const initials = fullName
@@ -72,10 +71,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) return { error: error.message }
     if (!data.session) return { error: 'Sign-in succeeded but no session was returned.' }
 
+    const meta = data.session.user.user_metadata as Partial<UserMetadata>
+    const normalizedRole = normalizeRole(meta.role)
+    if (normalizedRole !== meta.role) {
+      await supabase.auth.updateUser({
+        data: {
+          ...meta,
+          role: normalizedRole,
+          full_name: meta.full_name ?? data.session.user.email ?? 'User',
+        },
+      })
+    }
+
     const authUser = sessionToUser(data.session)
     if (!authUser) {
       await supabase.auth.signOut()
-      return { error: 'Your account has no role assigned. Contact an administrator.' }
+      return { error: 'Your account could not be loaded. Please sign in again.' }
     }
     return { error: null }
   }
@@ -85,10 +96,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     metadata: SignUpMetadata
   ): Promise<{ error: string | null; needsEmailVerification: boolean }> {
+    const normalizedMetadata = {
+      ...metadata,
+      role: normalizeRole(metadata.role),
+      full_name: metadata.full_name?.trim() || 'User',
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: metadata },
+      options: { data: normalizedMetadata },
     })
     if (error) return { error: error.message, needsEmailVerification: false }
     // If Supabase's "Confirm email" setting is on, signUp succeeds but

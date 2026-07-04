@@ -1,10 +1,21 @@
-export type AppRole = 'applicant' | 'employer' | 'admin' | 'super_admin'
+export const APP_ROLES = ['applicant', 'employer', 'admin', 'super_admin'] as const
+export type AppRole = (typeof APP_ROLES)[number]
 
 export const ROLE_HIERARCHY: Record<AppRole, number> = {
   applicant:   1,
   employer:    2,
   admin:       3,
   super_admin: 4,
+}
+
+export const DEFAULT_ROLE: AppRole = 'applicant'
+
+export function isAppRole(value: unknown): value is AppRole {
+  return typeof value === 'string' && (APP_ROLES as readonly string[]).includes(value)
+}
+
+export function normalizeRole(value: unknown): AppRole {
+  return isAppRole(value) ? value : DEFAULT_ROLE
 }
 
 /**

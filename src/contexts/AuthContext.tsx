@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, type UserMetadata } from '@/lib/supabase'
-import { type AppRole, ROLE_HOME, normalizeRole } from '@/lib/rbac'
+import { DEFAULT_ROLE, type AppRole, ROLE_HOME, normalizeRole } from '@/lib/rbac'
 
 export interface AuthUser {
   id: string
@@ -29,8 +29,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 function sessionToUser(session: Session): AuthUser | null {
-  const meta = session.user.user_metadata as Partial<UserMetadata>
-  const role = normalizeRole(meta.role)
+  const rawMeta = session.user.user_metadata
+  if (!rawMeta || typeof rawMeta !== 'object') return null
+
+  const meta = rawMeta as Partial<UserMetadata>
+  const hasRoleField = Object.prototype.hasOwnProperty.call(meta, 'role')
+  const role = hasRoleField ? normalizeRole(meta.role) : DEFAULT_ROLE
+  if (!role) return null
 
   const fullName = meta.full_name ?? session.user.email ?? 'User'
   const initials = fullName
@@ -71,9 +76,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) return { error: error.message }
     if (!data.session) return { error: 'Sign-in succeeded but no session was returned.' }
 
-    const meta = data.session.user.user_metadata as Partial<UserMetadata>
-    const normalizedRole = normalizeRole(meta.role)
-    if (normalizedRole !== meta.role) {
+    const rawMeta = data.session.user.user_metadata
+    if (!rawMeta || typeof rawMeta !== 'object') {
+      await supabase.auth.signOut()
+      return { error: 'Your account metadata could not be read. Please sign in again.' }
+    }
+
+    const meta = rawMeta as Partial<UserMetadata>
+    const hasRoleField = Object.prototype.hasOwnProperty.call(meta, 'role')
+    const normalizedRole = hasRoleField ? normalizeRole(meta.role) : DEFAULT_ROLE
+    if (!normalizedRole) {
+      await supabase.auth.signOut()
+      return { error: 'Your account has an invalid role assignment. Please contact an administrator.' }
+    }
+
+    if (!hasRoleField) {
       await supabase.auth.updateUser({
         data: {
           ...meta,
@@ -96,9 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     metadata: SignUpMetadata
   ): Promise<{ error: string | null; needsEmailVerification: boolean }> {
+    const normalizedRole = normalizeRole(metadata.role)
+    if (!normalizedRole) {
+      return { error: 'A valid role is required to create an account.', needsEmailVerification: false }
+    }
+
     const normalizedMetadata = {
       ...metadata,
-      role: normalizeRole(metadata.role),
+      role: normalizedRole,
       full_name: metadata.full_name?.trim() || 'User',
     }
 

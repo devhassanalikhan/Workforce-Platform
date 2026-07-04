@@ -14,8 +14,10 @@ export function isAppRole(value: unknown): value is AppRole {
   return typeof value === 'string' && (APP_ROLES as readonly string[]).includes(value)
 }
 
-export function normalizeRole(value: unknown): AppRole {
-  return isAppRole(value) ? value : DEFAULT_ROLE
+export function normalizeRole(value: unknown): AppRole | null {
+  if (isAppRole(value)) return value
+  if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) return null
+  return null
 }
 
 /**

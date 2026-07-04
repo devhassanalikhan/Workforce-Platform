@@ -19,8 +19,10 @@ import {
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
+import { hasRole } from '@/lib/rbac'
 import { getJobs, getSavedJobIds } from '@/lib/data/jobs'
 import { saveJob, unsaveJob } from '@/lib/data/mutations'
+import ScraperPanel from '@/components/admin/ScraperPanel'
 import type { Job } from '@/types/domain'
 
 const jobCategories = [
@@ -296,6 +298,12 @@ export default function JobsMarketplace() {
       {/* ── Content ───────────────────────────────────────────── */}
       <section className="py-8 lg:py-12">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Admin-only scraper control */}
+          {user && hasRole(user.role, 'admin') && (
+            <div className="mb-6">
+              <ScraperPanel />
+            </div>
+          )}
           <div className="flex gap-8">
             {/* Sidebar — Desktop */}
             <aside className="hidden lg:block w-64 flex-shrink-0">

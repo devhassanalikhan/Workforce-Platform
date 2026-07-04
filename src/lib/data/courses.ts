@@ -2,6 +2,11 @@ import { supabase } from '@/lib/supabase'
 import { mockCourses } from '@/data/mockCourses'
 import type { Course } from '@/types/domain'
 
+export interface EnrollmentInfo {
+  progress: number
+  completedAt: string | null
+}
+
 interface CourseRow {
   id: string
   title: string
@@ -39,6 +44,21 @@ function mapRow(row: CourseRow): Course {
     // signed-in applicant — not wired up yet, see Course type comment.
     progress: 0,
   }
+}
+
+// Fetches the logged-in applicant's enrollment records, keyed by course_id.
+// Returns an empty Map for unauthenticated or non-applicant callers.
+export async function getEnrollments(userId: string): Promise<Map<string, EnrollmentInfo>> {
+  const { data } = await supabase
+    .from('training_enrollments')
+    .select('course_id, progress, completed_at')
+    .eq('talent_id', userId)
+
+  const map = new Map<string, EnrollmentInfo>()
+  for (const row of (data ?? []) as { course_id: string; progress: number; completed_at: string | null }[]) {
+    map.set(row.course_id, { progress: row.progress, completedAt: row.completed_at })
+  }
+  return map
 }
 
 // Falls back to bundled demo courses whenever the live `training_courses`

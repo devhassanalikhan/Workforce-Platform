@@ -22,6 +22,7 @@ const SignupPage       = lazy(() => import('./pages/SignupPage'))
 const ApplicantDashboard = lazy(() => import('./pages/Dashboard'))
 const TalentPool         = lazy(() => import('./pages/TalentPool'))
 const EmployerEnterprise = lazy(() => import('./pages/EmployerEnterprise'))
+const EmployerPortal     = lazy(() => import('./pages/EmployerPortal'))
 const PlacementDashboard = lazy(() => import('./pages/PlacementDashboard'))
 const WaslDashboard      = lazy(() => import('./pages/WaslDashboard'))
 
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/about"       element={<AboutTrust />} />
                 <Route path="/ai-assistant" element={<AiAssistant />} />
                 <Route path="/blog"        element={<BlogResources />} />
+                <Route path="/employers"   element={<EmployerEnterprise />} />
                 <Route path="/login"       element={<LoginPage />} />
                 <Route path="/signup"      element={<SignupPage />} />
 
@@ -59,9 +61,9 @@ function App() {
                 } />
 
                 {/* ── employer+ ──────────────────────────────────────────── */}
-                <Route path="/employers" element={
+                <Route path="/employer-portal" element={
                   <ProtectedRoute requiredRole="employer">
-                    <EmployerEnterprise />
+                    <EmployerPortal />
                   </ProtectedRoute>
                 } />
 

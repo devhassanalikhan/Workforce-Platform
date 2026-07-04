@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react'
 import {
   Building2,
   ShieldCheck,
@@ -17,17 +16,11 @@ import {
   Award,
   Briefcase,
   ChevronRight,
-  MapPin,
-  FileText,
   Activity,
 } from 'lucide-react'
+import { useNavigate } from 'react-router'
 import { useScrollAnimation, useStaggerAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
-import { getActiveJobOrder } from '@/lib/data/employer'
-import { supabase } from '@/lib/supabase'
-import type { ActiveJobOrder } from '@/types/domain'
-import { STAGE_LABELS, TOTAL_STAGES } from '@/lib/pipelineStages'
-import JobFormDialog from '@/components/jobs/JobFormDialog'
 
 const features = [
   {
@@ -152,17 +145,8 @@ const plans = [
   },
 ]
 
-// ── Hero mockup data — decorative only, shown to every visitor regardless of
-// role, so it stays static rather than querying real (potentially another
-// employer's) placement data. The real "Active Job Orders" section further
-// down fetches actual data via getActiveJobOrder().
-//
-// NOTE: the Sourced/Screened/Shortlist/Confirmed funnel counts below have no
-// equivalent in the current schema — `placements.stage` only models the
-// 6-stage journey from Job Order Matched onward, not the pre-placement
-// sourcing funnel. Flagging this gap rather than fabricating a table for it;
-// decide separately whether that funnel needs its own tracking.
-
+// Hero mockup — decorative, static, visible to all visitors.
+// Illustrates what the product looks like for employers without querying live data.
 const JO_PIPELINE = [
   { label: 'Sourced',   count: 12, color: 'bg-brand-gold'  },
   { label: 'Screened',  count: 8,  color: 'bg-brand-teal'  },
@@ -175,46 +159,27 @@ const JO_CANDIDATE = {
   initials:   'AK',
   trade:      'Construction Supervisor',
   origin:     'Rawalpindi, Pakistan',
-  destination:'Dubai, UAE',
   aiScore:    96,
   stage:      5,
   totalStages:6,
   stageLabel: 'Ethical Placement',
-  jobOrderId: 'JO-2841',
-  visa:       'Stamped',
-  flight:     'Pending',
-  contract:   'Countersigned',
 }
 
 export default function EmployerEnterprise() {
   const { user } = useAuth()
-  const isEmployer = user?.role === 'employer'
-  const [activeJobOrder, setActiveJobOrder] = useState<ActiveJobOrder | null>(null)
-  const [companyId, setCompanyId]           = useState<string | null>(null)
-  const [jobFormOpen, setJobFormOpen]       = useState(false)
-
-  useEffect(() => {
-    if (!isEmployer || !user) return
-    getActiveJobOrder().then(setActiveJobOrder)
-    // Fetch the employer's company_id from company_members
-    supabase
-      .from('company_members')
-      .select('company_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => { if (data) setCompanyId(data.company_id) })
-  }, [isEmployer, user])
-
-  const openJobForm = useCallback(() => setJobFormOpen(true), [])
-  const handleJobSuccess = useCallback(() => {
-    // Refresh active job order after a new job is posted
-    getActiveJobOrder().then(setActiveJobOrder)
-  }, [])
+  const navigate = useNavigate()
+  const canAccessPortal = user !== null && (
+    user.role === 'employer' || user.role === 'admin' || user.role === 'super_admin'
+  )
 
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
   const { ref: featuresRef, isVisible: featuresVisible } = useStaggerAnimation(6, 0.08)
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation()
   const { ref: pricingRef, isVisible: pricingVisible } = useScrollAnimation()
+
+  function handlePostJob() {
+    navigate(canAccessPortal ? '/employer-portal' : '/signup')
+  }
 
   return (
     <div className="pt-[60px] min-h-screen">
@@ -247,7 +212,7 @@ export default function EmployerEnterprise() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={isEmployer ? openJobForm : undefined}
+                  onClick={handlePostJob}
                   className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
                 >
                   <Sparkles className="w-4 h-4" />
@@ -263,7 +228,6 @@ export default function EmployerEnterprise() {
             <div className="relative hidden lg:block">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4 mt-8">
-                  {/* Candidate card — scoped to JO-2841 */}
                   <div className="p-5 rounded-2xl bg-card border border-border animate-float">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-sm font-bold text-brand-gold tabular-nums">
@@ -286,7 +250,6 @@ export default function EmployerEnterprise() {
                       Stage {JO_CANDIDATE.stage} of {JO_CANDIDATE.totalStages} — {JO_CANDIDATE.stageLabel}
                     </div>
                   </div>
-                  {/* JO-2841 pipeline widget */}
                   <div className="p-5 rounded-2xl bg-card border border-border">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-medium text-card-foreground tabular-nums">
@@ -350,152 +313,6 @@ export default function EmployerEnterprise() {
         </div>
       </section>
 
-      {/* ── Active Placement Portal — visible to employer only, real data ──── */}
-      {isEmployer && activeJobOrder && (
-        <section className="py-8 border-b border-border bg-card/30">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-
-            {/* Section header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest block mb-1">
-                  Employer Portal
-                </span>
-                <h2 className="text-base font-bold text-card-foreground">Active Job Orders</h2>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/20">
-                <Activity className="w-3 h-3 text-brand-gold" />
-                <span className="text-[10px] font-semibold text-brand-gold tabular-nums">1 Active</span>
-              </div>
-            </div>
-
-            {/* Job order card */}
-            <div className="rounded-2xl bg-card border border-border overflow-hidden">
-              {/* Card header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center">
-                    <Briefcase className="w-4 h-4 text-brand-gold" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold text-card-foreground tabular-nums">{activeJobOrder.jobOrderCode}</span>
-                      <span className="text-[9px] font-bold text-brand-gold bg-brand-gold/10 border border-brand-gold/20 px-1.5 py-0.5 rounded-full">ACTIVE</span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">{activeJobOrder.jobTitle} · {activeJobOrder.destination}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{activeJobOrder.destination}</span>
-                </div>
-              </div>
-
-              <div className="p-6 grid lg:grid-cols-3 gap-6">
-
-                {/* Candidate snapshot */}
-                <div className="lg:col-span-1 space-y-4">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                    Confirmed Candidate
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-sm font-bold text-brand-gold tabular-nums flex-shrink-0">
-                      {activeJobOrder.candidateInitials}
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-card-foreground">{activeJobOrder.candidateName}</div>
-                      <div className="text-[11px] text-muted-foreground">{activeJobOrder.jobTitle}</div>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 text-[11px] text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                      <span>{activeJobOrder.origin}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Globe className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                      <span>Destination: {activeJobOrder.destination}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                      <span className="tabular-nums">AI Match: {activeJobOrder.aiScore}%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pipeline bar */}
-                <div className="lg:col-span-1 space-y-4">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                    Placement Journey
-                  </span>
-                  <div className="flex gap-1">
-                    {Array.from({ length: TOTAL_STAGES }, (_, i) => i + 1).map(step => (
-                      <div
-                        key={step}
-                        className={`flex-1 h-2 rounded-full ${
-                          step < activeJobOrder.stage  ? 'bg-brand-teal' :
-                          step === activeJobOrder.stage ? 'bg-brand-gold' :
-                                                          'bg-border'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="text-[11px] text-brand-gold font-semibold tabular-nums">
-                    Stage {activeJobOrder.stage} of {TOTAL_STAGES} — {STAGE_LABELS[activeJobOrder.stage]}
-                  </div>
-                  {/* Sourcing funnel — not yet modeled in the schema, stays as
-                      illustrative mock data (see NOTE above JO_PIPELINE) */}
-                  <div className="space-y-1.5">
-                    {JO_PIPELINE.map(item => (
-                      <div key={item.label} className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground w-16">{item.label}</span>
-                        <div className="flex-1 h-1 bg-foreground/10 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${item.color}`} style={{ width: `${(item.count / 12) * 100}%` }} />
-                        </div>
-                        <span className="text-[10px] text-muted-foreground tabular-nums">{item.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Compliance checklist */}
-                <div className="lg:col-span-1 space-y-4">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                    Document Status
-                  </span>
-                  <div className="space-y-2">
-                    {activeJobOrder.complianceItems.map(item => (
-                      <div key={item.label} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-[12px] text-muted-foreground">{item.label}</span>
-                        </div>
-                        {item.status === 'complete' ? (
-                          <div className="flex items-center gap-1 text-brand-teal">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-semibold">Verified</span>
-                          </div>
-                        ) : item.status === 'flagged' ? (
-                          <div className="flex items-center gap-1 text-red-400">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-semibold">Flagged</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-brand-gold">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-semibold">Pending</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Stats */}
       <section className="py-10 border-b border-border" ref={statsRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -540,19 +357,14 @@ export default function EmployerEnterprise() {
             </p>
           </div>
 
-          <div
-            ref={featuresRef}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
-          >
+          <div ref={featuresRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((feature, i) => (
               <div
                 key={feature.title}
                 className="p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 transition-all duration-500 group"
                 style={{
                   opacity: featuresVisible ? 1 : 0,
-                  transform: featuresVisible
-                    ? 'translateY(0)'
-                    : 'translateY(20px)',
+                  transform: featuresVisible ? 'translateY(0)' : 'translateY(20px)',
                   transition: `all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.07}s`,
                 }}
               >
@@ -586,16 +398,10 @@ export default function EmployerEnterprise() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map(t => (
-              <div
-                key={t.author}
-                className="p-6 rounded-2xl bg-card border border-border"
-              >
+              <div key={t.author} className="p-6 rounded-2xl bg-card border border-border">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="w-4 h-4 fill-brand-gold text-brand-gold"
-                    />
+                    <Star key={i} className="w-4 h-4 fill-brand-gold text-brand-gold" />
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-6">
@@ -603,16 +409,10 @@ export default function EmployerEnterprise() {
                 </p>
                 <div className="flex items-center gap-3 pt-4 border-t border-border">
                   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-                    <img
-                      src={t.logo}
-                      alt={t.role}
-                      className="w-8 h-8 object-contain"
-                    />
+                    <img src={t.logo} alt={t.role} className="w-8 h-8 object-contain" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-card-foreground">
-                      {t.author}
-                    </div>
+                    <div className="text-sm font-medium text-card-foreground">{t.author}</div>
                     <div className="text-[11px] text-muted-foreground">{t.role}</div>
                   </div>
                 </div>
@@ -622,8 +422,8 @@ export default function EmployerEnterprise() {
         </div>
       </section>
 
-      {/* Pricing — hidden for authenticated employer accounts */}
-      {!isEmployer && <section className="py-20 lg:py-28" ref={pricingRef}>
+      {/* Pricing */}
+      <section className="py-20 lg:py-28" ref={pricingRef}>
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <span className="text-[11px] font-medium text-brand-teal uppercase tracking-[0.15em] mb-3 block">
@@ -665,25 +465,18 @@ export default function EmployerEnterprise() {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {plan.name}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">{plan.name}</h3>
                   <p className="text-xs text-muted-foreground">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
-                  <span className="text-3xl font-bold text-foreground">
-                    {plan.price}
-                  </span>
+                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-sm text-muted-foreground">{plan.period}</span>
                 </div>
 
                 <ul className="space-y-3 mb-8">
                   {plan.features.map(feature => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2 text-xs text-muted-foreground"
-                    >
+                    <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
                       <CheckCircle2 className="w-4 h-4 text-brand-teal flex-shrink-0 mt-0.5" />
                       {feature}
                     </li>
@@ -691,6 +484,7 @@ export default function EmployerEnterprise() {
                 </ul>
 
                 <button
+                  onClick={handlePostJob}
                   className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
                     plan.popular
                       ? 'bg-brand-gold text-navy-950 hover:bg-brand-gold-light'
@@ -703,75 +497,39 @@ export default function EmployerEnterprise() {
             ))}
           </div>
         </div>
-      </section>}
+      </section>
 
-      {/* CTA — intentionally always dark */}
+      {/* Bottom CTA */}
       <section className="py-16 lg:py-20">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-navy-800 via-navy-900 to-navy-950 border border-white/5 p-10 lg:p-16 text-center">
             <div className="absolute inset-0 bg-gradient-radial opacity-50" />
             <div className="relative z-10 max-w-2xl mx-auto">
               <Award className="w-12 h-12 text-brand-gold mx-auto mb-4" />
-              {isEmployer ? (
-                <>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                    Need More Talent for Your Team?
-                  </h2>
-                  <p className="text-slate-400 mb-8">
-                    Post additional job orders for Al-Rashid Construction LLC and let our AI
-                    surface pre-verified candidates within 48 hours.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <button
-                      onClick={openJobForm}
-                      className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Post a New Job Order
-                    </button>
-                    <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
-                      <ChevronRight className="w-4 h-4" />
-                      Contact Your Account Manager
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                    Ready to Transform Your Hiring?
-                  </h2>
-                  <p className="text-slate-400 mb-8">
-                    Join 500+ ethical employers who trust WorkforceX to build their
-                    global teams. Start with a free job posting today.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    <button
-                      onClick={openJobForm}
-                      className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Post Your First Job
-                    </button>
-                    <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
-                      <ChevronRight className="w-4 h-4" />
-                      Talk to Sales
-                    </button>
-                  </div>
-                </>
-              )}
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                Ready to Transform Your Hiring?
+              </h2>
+              <p className="text-slate-400 mb-8">
+                Join 500+ ethical employers who trust WorkforceX to build their
+                global teams. Start with a free job posting today.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button
+                  onClick={handlePostJob}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {canAccessPortal ? 'Go to Your Portal' : 'Post Your First Job'}
+                </button>
+                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
+                  <ChevronRight className="w-4 h-4" />
+                  Talk to Sales
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </section>
-      {/* ── Job Form Dialog ──────────────────────────────────────────────────── */}
-      {isEmployer && companyId && (
-        <JobFormDialog
-          open={jobFormOpen}
-          onOpenChange={setJobFormOpen}
-          companyId={companyId}
-          onSuccess={handleJobSuccess}
-        />
-      )}
     </div>
   )
 }

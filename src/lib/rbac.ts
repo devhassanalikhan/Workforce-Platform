@@ -30,17 +30,17 @@ export function hasRole(userRole: AppRole, requiredRole: AppRole): boolean {
 
 /** Minimum role required to access each protected route. */
 export const ROUTE_MIN_ROLE: Record<string, AppRole> = {
-  '/dashboard': 'applicant',
-  '/employers': 'employer',
-  '/talent':    'admin',
-  '/placement': 'admin',
-  '/wasl':      'admin',
+  '/dashboard':      'applicant',
+  '/employer-portal':'employer',
+  '/talent':         'admin',
+  '/placement':      'admin',
+  '/wasl':           'admin',
 }
 
 /** Default redirect target per role after successful login. */
 export const ROLE_HOME: Record<AppRole, string> = {
   applicant:   '/dashboard',
-  employer:    '/employers',
+  employer:    '/employer-portal',
   admin:       '/talent',
   super_admin: '/talent',
 }

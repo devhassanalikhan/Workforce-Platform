@@ -382,7 +382,7 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-bold text-foreground leading-[1.1] mb-6 tracking-tight">
-                Ethical Overseas Employment,{' '}
+                Overseas Employment,{' '}
                 <span className="text-gradient">Verified & Secured</span>
               </h1>
 

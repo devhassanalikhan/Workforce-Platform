@@ -1,4 +1,4 @@
-import { type ElementType } from 'react'
+import { useEffect, useState, type ElementType } from 'react'
 import {
   MapPin,
   Briefcase,
@@ -13,8 +13,13 @@ import {
   Languages,
   Building2,
   Activity,
+  Pencil,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import TalentProfileForm from '@/components/profile/TalentProfileForm'
+import type { TalentProfilePayload } from '@/lib/data/mutations'
+import * as Dialog from '@radix-ui/react-dialog'
 
 // ── Static profile data for Ali Khan (c1 / JO-2841) ──────────────────────────
 
@@ -110,6 +115,21 @@ export default function ApplicantDashboard() {
   const { user } = useAuth()
   const firstName = user?.fullName.split(' ')[0] ?? 'Candidate'
 
+  const [profileFormOpen, setProfileFormOpen]         = useState(false)
+  const [existingProfile, setExistingProfile]         = useState<Partial<TalentProfilePayload> | undefined>(undefined)
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('talent_profiles')
+      .select('name,photo_url,role_title,location,experience_years,skills,languages,certifications,available')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setExistingProfile(data as Partial<TalentProfilePayload>)
+      })
+  }, [user])
+
   const completedCount = CHECKLIST.filter(c => c.status === 'complete').length
   const totalCount     = CHECKLIST.length
 
@@ -152,9 +172,20 @@ export default function ApplicantDashboard() {
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
                 Your Profile
               </span>
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/25">
-                <ShieldCheck className="w-3 h-3 text-brand-teal" />
-                <span className="text-[9px] font-semibold text-brand-teal">Verified</span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/25">
+                  <ShieldCheck className="w-3 h-3 text-brand-teal" />
+                  <span className="text-[9px] font-semibold text-brand-teal">Verified</span>
+                </div>
+                <button
+                  id="edit-profile-btn"
+                  onClick={() => setProfileFormOpen(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                  title="Edit your profile"
+                >
+                  <Pencil className="w-3 h-3" />
+                  <span className="text-[10px] font-medium">Edit</span>
+                </button>
               </div>
             </div>
 
@@ -336,6 +367,34 @@ export default function ApplicantDashboard() {
         </div>
 
       </div>
+      {/* ── Profile Edit Dialog ────────────────────────────────────────────── */}
+      {user && (
+        <Dialog.Root open={profileFormOpen} onOpenChange={setProfileFormOpen}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+            <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-2xl shadow-2xl p-6 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+              <div className="flex items-center justify-between mb-6">
+                <Dialog.Title className="text-base font-semibold text-foreground">Edit Your Profile</Dialog.Title>
+                <Dialog.Close className="p-1.5 rounded-lg hover:bg-muted/60 text-muted-foreground transition-colors text-lg leading-none">&times;</Dialog.Close>
+              </div>
+              <TalentProfileForm
+                userId={user.id}
+                existingProfile={existingProfile}
+                onSuccess={() => {
+                  setProfileFormOpen(false)
+                  // Re-fetch updated profile
+                  supabase
+                    .from('talent_profiles')
+                    .select('name,photo_url,role_title,location,experience_years,skills,languages,certifications,available')
+                    .eq('id', user.id)
+                    .maybeSingle()
+                    .then(({ data }) => { if (data) setExistingProfile(data as Partial<TalentProfilePayload>) })
+                }}
+              />
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
     </div>
   )
 }

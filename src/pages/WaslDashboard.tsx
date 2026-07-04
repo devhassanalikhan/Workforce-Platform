@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Plane,
   MapPin,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { getDeployedWorkers } from '@/lib/data/deployments'
 import type { DeployedWorker, WorkerStatus, GrievanceSeverity } from '@/types/domain'
+import { LogCheckInModal, ReleaseEscrowModal, FileGrievanceModal } from '@/components/wasl/ActionModals'
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 
@@ -35,13 +36,23 @@ const severityConfig: Record<GrievanceSeverity, { classes: string; label: string
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function WaslDashboard() {
-  const [workers, setWorkers] = useState<DeployedWorker[]>([])
-  const [filter, setFilter]       = useState<'all' | WorkerStatus>('all')
-  const [expanded, setExpanded]   = useState<string | null>(null)
+  const [workers, setWorkers]         = useState<DeployedWorker[]>([])
+  const [filter, setFilter]           = useState<'all' | WorkerStatus>('all')
+  const [expanded, setExpanded]       = useState<string | null>(null)
 
-  useEffect(() => {
-    getDeployedWorkers().then(setWorkers)
-  }, [])
+  // ── Modal state ─────────────────────────────────────────────────────────────
+  const [activeWorker, setActiveWorker]     = useState<DeployedWorker | null>(null)
+  const [checkInOpen, setCheckInOpen]       = useState(false)
+  const [escrowOpen, setEscrowOpen]         = useState(false)
+  const [grievanceOpen, setGrievanceOpen]   = useState(false)
+
+  const refresh = useCallback(() => { getDeployedWorkers().then(setWorkers) }, [])
+
+  useEffect(() => { getDeployedWorkers().then(setWorkers) }, [])
+
+  function openCheckIn(worker: DeployedWorker) { setActiveWorker(worker); setCheckInOpen(true) }
+  function openEscrow(worker: DeployedWorker)  { setActiveWorker(worker); setEscrowOpen(true) }
+  function openGrievance(worker: DeployedWorker) { setActiveWorker(worker); setGrievanceOpen(true) }
 
   const filtered = filter === 'all' ? workers : workers.filter(w => w.status === filter)
 
@@ -234,15 +245,27 @@ export default function WaslDashboard() {
                   </button>
                   {isExpanded && (
                     <div className="grid grid-cols-3 gap-2 pt-1">
-                      <button className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-brand-teal/10 border border-brand-teal/20 hover:bg-brand-teal/20 transition-all">
+                      <button
+                        id={`checkin-btn-${worker.id}`}
+                        onClick={() => openCheckIn(worker)}
+                        className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-brand-teal/10 border border-brand-teal/20 hover:bg-brand-teal/20 transition-all"
+                      >
                         <CheckCircle2 className="w-4 h-4 text-brand-teal" />
                         <span className="text-[10px] text-brand-teal font-semibold leading-tight text-center">Log Check-in</span>
                       </button>
-                      <button className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 transition-all">
+                      <button
+                        id={`escrow-btn-${worker.id}`}
+                        onClick={() => openEscrow(worker)}
+                        className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 transition-all"
+                      >
                         <DollarSign className="w-4 h-4 text-violet-400" />
                         <span className="text-[10px] text-violet-400 font-semibold leading-tight text-center">Release Escrow</span>
                       </button>
-                      <button className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-brand-gold/10 border border-brand-gold/20 hover:bg-brand-gold/20 transition-all">
+                      <button
+                        id={`grievance-btn-${worker.id}`}
+                        onClick={() => openGrievance(worker)}
+                        className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-brand-gold/10 border border-brand-gold/20 hover:bg-brand-gold/20 transition-all"
+                      >
                         <MessageSquare className="w-4 h-4 text-brand-gold" />
                         <span className="text-[10px] text-brand-gold font-semibold leading-tight text-center">File Grievance</span>
                       </button>
@@ -272,6 +295,34 @@ export default function WaslDashboard() {
         </div>
       </div>
 
+      {/* ── Action Modals ─────────────────────────────────────────────────── */}
+      {activeWorker && (
+        <>
+          <LogCheckInModal
+            open={checkInOpen}
+            onOpenChange={setCheckInOpen}
+            deploymentId={activeWorker.id}
+            workerName={activeWorker.name}
+            onSuccess={refresh}
+          />
+          <ReleaseEscrowModal
+            open={escrowOpen}
+            onOpenChange={setEscrowOpen}
+            deploymentId={activeWorker.id}
+            workerName={activeWorker.name}
+            currentBalance={activeWorker.escrowBalance}
+            currency={activeWorker.escrowCurrency}
+            onSuccess={refresh}
+          />
+          <FileGrievanceModal
+            open={grievanceOpen}
+            onOpenChange={setGrievanceOpen}
+            deploymentId={activeWorker.id}
+            workerName={activeWorker.name}
+            onSuccess={refresh}
+          />
+        </>
+      )}
     </div>
   )
 }

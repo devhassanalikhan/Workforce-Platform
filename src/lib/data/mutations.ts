@@ -196,19 +196,11 @@ export async function releaseEscrow(
   deploymentId: string,
   amount: number
 ): Promise<MutationResult> {
-  // Decrement the escrow balance by `amount`
-  const { data: current, error: fetchErr } = await supabase
-    .from('deployments')
-    .select('escrow_balance')
-    .eq('id', deploymentId)
-    .single()
-  if (fetchErr) return { data: null, error: fetchErr.message }
-  const row = current as { escrow_balance: number } | null
-  const newBalance = Math.max(0, (row?.escrow_balance ?? 0) - amount)
-  const { error } = await supabase
-    .from('deployments')
-    .update({ escrow_balance: newBalance })
-    .eq('id', deploymentId)
+  // Use the database-side RPC so escrow updates remain atomic and race-safe.
+  const { error } = await supabase.rpc('release_escrow', {
+    p_deployment_id: deploymentId,
+    p_amount: amount,
+  })
   return { data: null, error: error?.message ?? null }
 }
 

@@ -27,7 +27,7 @@ export default function TalentProfileForm({ userId, existingProfile, onSuccess }
   const [langs, setLangs]       = useState<string[]>(existingProfile?.languages ?? [])
   const [certs, setCerts]       = useState<string[]>(existingProfile?.certifications ?? [])
   const [available, setAvailable] = useState(existingProfile?.available ?? true)
-  const [photoUrl, setPhotoUrl] = useState(existingProfile?.photo_url ?? null)
+  const photoUrl = existingProfile?.photo_url ?? null
 
   const [skillInput, setSkillInput] = useState('')
   const [langInput, setLangInput]   = useState('')

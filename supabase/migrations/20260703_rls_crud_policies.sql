@@ -303,3 +303,29 @@ CREATE POLICY "blog_articles_select" ON public.blog_articles
 DROP POLICY IF EXISTS "blog_articles_all_admin" ON public.blog_articles;
 CREATE POLICY "blog_articles_all_admin" ON public.blog_articles
   FOR ALL USING (get_my_role() IN ('admin', 'super_admin'));
+
+-- ================================================================
+-- CONSTRAINT: prevent duplicate applications (placements)
+-- Adds a server-side guard in addition to the RLS stage = 1 check.
+-- ================================================================
+ALTER TABLE public.placements
+  DROP CONSTRAINT IF EXISTS unique_talent_job;
+ALTER TABLE public.placements
+  ADD CONSTRAINT unique_talent_job UNIQUE (talent_id, job_id);
+
+-- ================================================================
+-- FUNCTION: atomic escrow release
+-- ================================================================
+CREATE OR REPLACE FUNCTION public.release_escrow(
+  p_deployment_id uuid,
+  p_amount        numeric
+)
+RETURNS void
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  UPDATE public.deployments
+  SET    escrow_balance = GREATEST(0, COALESCE(escrow_balance, 0) - p_amount)
+  WHERE  id = p_deployment_id;
+$$;

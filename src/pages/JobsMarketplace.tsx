@@ -90,7 +90,8 @@ export default function JobsMarketplace() {
     // Optimistic update
     setSavedJobs(prev => {
       const next = new Set(prev)
-      wasSaved ? next.delete(jobId) : next.add(jobId)
+      if (wasSaved) next.delete(jobId)
+      else next.add(jobId)
       return next
     })
     setTogglingId(jobId)
@@ -104,7 +105,8 @@ export default function JobsMarketplace() {
       // Rollback on failure
       setSavedJobs(prev => {
         const next = new Set(prev)
-        wasSaved ? next.add(jobId) : next.delete(jobId)
+        if (wasSaved) next.add(jobId)
+        else next.delete(jobId)
         return next
       })
       toast.error('Could not update saved jobs. Please try again.')

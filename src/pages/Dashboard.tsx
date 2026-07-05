@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import TalentProfileForm from '@/components/profile/TalentProfileForm'
+import DocumentUpload from '@/components/profile/DocumentUpload'
 import type { TalentProfilePayload } from '@/lib/data/mutations'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -339,10 +340,16 @@ export default function ApplicantDashboard() {
                     </p>
                   </div>
 
-                  {/* Status badge */}
-                  <div className={`flex items-center gap-1 flex-shrink-0 ${cfg.classes}`}>
-                    <StatusIcon className="w-3.5 h-3.5" />
-                    <span className="text-[11px] font-semibold">{cfg.label}</span>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    {/* Status badge */}
+                    <div className={`flex items-center gap-1 ${cfg.classes}`}>
+                      <StatusIcon className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-semibold">{cfg.label}</span>
+                    </div>
+                    {/* Upload control for applicants */}
+                    {user && (
+                      <DocumentUpload userId={user.id} itemKey={item.id} />
+                    )}
                   </div>
                 </div>
               )

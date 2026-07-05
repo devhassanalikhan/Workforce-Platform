@@ -95,15 +95,44 @@ export default function ApplicantDashboard() {
   if (!data?.profile) {
     return (
       <div className="pt-[96px] min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-sm px-4">
+        <div className="text-center space-y-6 max-w-sm px-4">
           <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mx-auto">
             <UserPlus className="w-5 h-5 text-brand-gold" />
           </div>
-          <h2 className="text-lg font-bold text-foreground">Complete your profile</h2>
-          <p className="text-sm text-muted-foreground">
-            Your talent profile hasn't been set up yet. Contact the WorkforceX team to get onboarded.
-          </p>
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-foreground">Complete your profile</h2>
+            <p className="text-sm text-muted-foreground">
+              Your talent profile hasn't been set up yet. Create your profile now to unlock placements and compliant document uploads.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setProfileFormOpen(true)}
+              className="px-6 py-3 rounded-2xl bg-brand-gold text-black font-semibold transition hover:bg-brand-gold/90"
+            >
+              Create Profile
+            </button>
+          </div>
         </div>
+
+        {user && (
+          <Dialog.Root open={profileFormOpen} onOpenChange={setProfileFormOpen}>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+              <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-2xl shadow-2xl p-6 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                <div className="flex items-center justify-between mb-6">
+                  <Dialog.Title className="text-base font-semibold text-foreground">Create Your Profile</Dialog.Title>
+                  <Dialog.Close className="p-1.5 rounded-lg hover:bg-muted/60 text-muted-foreground transition-colors text-lg leading-none">&times;</Dialog.Close>
+                </div>
+                <TalentProfileForm
+                  userId={user.id}
+                  existingProfile={existingProfile}
+                  onSuccess={handleProfileSaved}
+                />
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+        )}
       </div>
     )
   }

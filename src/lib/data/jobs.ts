@@ -55,6 +55,16 @@ function mapRow(row: JobRow): Job {
   }
 }
 
+// Returns the set of job IDs the user has saved. Empty Set for guests.
+export async function getSavedJobIds(userId: string): Promise<Set<string>> {
+  const { data } = await supabase
+    .from('saved_jobs')
+    .select('job_id')
+    .eq('user_id', userId)
+
+  return new Set(((data ?? []) as { job_id: string }[]).map(r => r.job_id))
+}
+
 // Falls back to bundled demo listings whenever the live `jobs` table has no
 // rows yet, so the marketplace keeps showing full content for client demos
 // until real jobs are posted.

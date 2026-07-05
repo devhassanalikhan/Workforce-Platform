@@ -3,6 +3,33 @@ import { mockActiveJobOrder } from '@/data/mockActiveJobOrder'
 import type { ActiveJobOrder, ComplianceItem } from '@/types/domain'
 import { initialsOf } from '@/lib/initials'
 
+export interface CompanyJob {
+  id: string
+  title: string
+  location: string
+  salary_min: number | null
+  salary_max: number | null
+  currency: string
+  employment_type: string
+  category: string
+  experience_level: string
+  description: string
+  requirements: string[]
+  is_hot: boolean
+  posted_at: string
+}
+
+export async function getCompanyJobs(companyId: string): Promise<CompanyJob[]> {
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('id, title, location, salary_min, salary_max, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at')
+    .eq('company_id', companyId)
+    .order('posted_at', { ascending: false })
+
+  if (error || !data) return []
+  return data as CompanyJob[]
+}
+
 interface PlacementWithJoinsRow {
   id: string
   job_order_code: string

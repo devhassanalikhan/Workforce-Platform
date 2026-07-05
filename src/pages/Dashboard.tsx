@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getDashboardData, type DashboardData } from '@/lib/data/dashboard'
 import { initialsOf } from '@/lib/initials'
 import TalentProfileForm from '@/components/profile/TalentProfileForm'
+import DocumentUpload from '@/components/profile/DocumentUpload'
 import type { TalentProfilePayload } from '@/lib/data/mutations'
 import type { ChecklistStatus } from '@/types/domain'
 

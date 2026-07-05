@@ -398,9 +398,14 @@ export default function ApplicantDashboard() {
                         </p>
                       )}
                     </div>
-                    <div className={`flex items-center gap-1 flex-shrink-0 ${cfg.classes}`}>
-                      <StatusIcon className="w-3.5 h-3.5" />
-                      <span className="text-[11px] font-semibold">{cfg.label}</span>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div className={`flex items-center gap-1 ${cfg.classes}`}>
+                        <StatusIcon className="w-3.5 h-3.5" />
+                        <span className="text-[11px] font-semibold">{cfg.label}</span>
+                      </div>
+                      {user && (
+                        <DocumentUpload userId={user.id} itemKey={item.itemKey} />
+                      )}
                     </div>
                   </div>
                 )

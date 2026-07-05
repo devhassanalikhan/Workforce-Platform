@@ -14,9 +14,15 @@ import {
   Filter,
   X,
   Globe,
+  Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
-import { getJobs } from '@/lib/data/jobs'
+import { useAuth } from '@/contexts/AuthContext'
+import { hasRole } from '@/lib/rbac'
+import { getJobs, getSavedJobIds } from '@/lib/data/jobs'
+import { saveJob, unsaveJob } from '@/lib/data/mutations'
+import ScraperPanel from '@/components/admin/ScraperPanel'
 import type { Job } from '@/types/domain'
 
 const jobCategories = [
@@ -49,6 +55,7 @@ const salaryRanges = ['All Ranges', '$1,000 - $2,000', '$2,000 - $3,500', '$3,50
 const sortOptions = ['Relevance', 'Salary: High to Low', 'Salary: Low to High', 'Newest', 'Most Applied']
 
 export default function JobsMarketplace() {
+  const { user } = useAuth()
   const [jobs, setJobs] = useState<Job[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
@@ -57,7 +64,9 @@ export default function JobsMarketplace() {
   const [selectedType, setSelectedType] = useState('All Types')
   const [selectedSalary, setSelectedSalary] = useState('All Ranges')
   const [sortBy, setSortBy] = useState('Relevance')
-  const [savedJobs, setSavedJobs] = useState<string[]>([])
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set())
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [showSavedOnly, setShowSavedOnly] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
 
@@ -65,11 +74,47 @@ export default function JobsMarketplace() {
     getJobs().then(setJobs)
   }, [])
 
-  const toggleSave = (id: string) => {
-    setSavedJobs(prev => prev.includes(id) ? prev.filter(j => j !== id) : [...prev, id])
+  useEffect(() => {
+    if (!user?.id) {
+      setSavedJobs(new Set())
+      return
+    }
+    getSavedJobIds(user.id).then(setSavedJobs)
+  }, [user?.id])
+
+  const toggleSave = async (jobId: string) => {
+    if (!user?.id) return
+    if (togglingId) return
+
+    const wasSaved = savedJobs.has(jobId)
+    // Optimistic update
+    setSavedJobs(prev => {
+      const next = new Set(prev)
+      if (wasSaved) next.delete(jobId)
+      else next.add(jobId)
+      return next
+    })
+    setTogglingId(jobId)
+
+    const { error } = wasSaved
+      ? await unsaveJob(user.id, jobId)
+      : await saveJob(user.id, jobId)
+
+    setTogglingId(null)
+    if (error) {
+      // Rollback on failure
+      setSavedJobs(prev => {
+        const next = new Set(prev)
+        if (wasSaved) next.add(jobId)
+        else next.delete(jobId)
+        return next
+      })
+      toast.error('Could not update saved jobs. Please try again.')
+    }
   }
 
   const filteredJobs = jobs.filter(job => {
+    if (showSavedOnly && !savedJobs.has(job.id)) return false
     const matchesSearch =
       !searchQuery ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -255,6 +300,12 @@ export default function JobsMarketplace() {
       {/* ── Content ───────────────────────────────────────────── */}
       <section className="py-8 lg:py-12">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Admin-only scraper control */}
+          {user && hasRole(user.role, 'admin') && (
+            <div className="mb-6">
+              <ScraperPanel />
+            </div>
+          )}
           <div className="flex gap-8">
             {/* Sidebar — Desktop */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
@@ -307,9 +358,24 @@ export default function JobsMarketplace() {
             <div className="flex-1 min-w-0">
               {/* Sort & Count */}
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-muted-foreground">
-                  {filteredJobs.length} jobs found
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">
+                    {filteredJobs.length} jobs found
+                  </span>
+                  {user && savedJobs.size > 0 && (
+                    <button
+                      onClick={() => setShowSavedOnly(prev => !prev)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
+                        showSavedOnly
+                          ? 'bg-red-50 dark:bg-red-500/15 text-red-500 border-red-200 dark:border-red-500/30'
+                          : 'text-muted-foreground border-border hover:text-foreground'
+                      }`}
+                    >
+                      <Heart className={`w-3 h-3 ${showSavedOnly ? 'fill-red-500 text-red-500' : ''}`} />
+                      Saved ({savedJobs.size})
+                    </button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">Sort by:</span>
                   <select
@@ -360,14 +426,19 @@ export default function JobsMarketplace() {
                             </div>
                           </div>
                           <button
-                            onClick={() => toggleSave(job.id)}
-                            className="flex-shrink-0 p-2 rounded-lg hover:bg-muted/60 transition-colors"
+                            onClick={() => void toggleSave(job.id)}
+                            disabled={togglingId === job.id}
+                            className="flex-shrink-0 p-2 rounded-lg hover:bg-muted/60 transition-colors disabled:opacity-60"
                           >
-                            <Heart className={`w-5 h-5 transition-colors ${
-                              savedJobs.includes(job.id)
-                                ? 'fill-red-500 text-red-500'
-                                : 'text-muted-foreground hover:text-foreground'
-                            }`} />
+                            {togglingId === job.id ? (
+                              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                            ) : (
+                              <Heart className={`w-5 h-5 transition-colors ${
+                                savedJobs.has(job.id)
+                                  ? 'fill-red-500 text-red-500'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`} />
+                            )}
                           </button>
                         </div>
 

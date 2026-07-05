@@ -1,4 +1,4 @@
-import { useEffect, useState, type ElementType } from 'react'
+import { useState, useEffect, type ElementType } from 'react'
 import {
   MapPin,
   Briefcase,
@@ -13,126 +13,151 @@ import {
   Languages,
   Building2,
   Activity,
+  Loader2,
+  UserPlus,
+  ClipboardList,
   Pencil,
 } from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { getDashboardData, type DashboardData } from '@/lib/data/dashboard'
+import { initialsOf } from '@/lib/initials'
 import TalentProfileForm from '@/components/profile/TalentProfileForm'
 import DocumentUpload from '@/components/profile/DocumentUpload'
 import type { TalentProfilePayload } from '@/lib/data/mutations'
-import * as Dialog from '@radix-ui/react-dialog'
-
-// ── Static profile data for Ali Khan (c1 / JO-2841) ──────────────────────────
+import type { ChecklistStatus } from '@/types/domain'
 
 const PIPELINE_STAGES = [
-  { step: 1, label: 'Job Order Matched',  color: 'bg-brand-teal'  },
-  { step: 2, label: 'Profile Screened',   color: 'bg-brand-teal'  },
-  { step: 3, label: 'Training Enrolled',  color: 'bg-brand-teal'  },
-  { step: 4, label: 'Readiness Cleared',  color: 'bg-brand-teal'  },
-  { step: 5, label: 'Ethical Placement',  color: 'bg-brand-gold'  },
-  { step: 6, label: 'Deployed',           color: 'bg-violet-500'  },
+  { step: 1, label: 'Job Order Matched', color: 'bg-brand-teal' },
+  { step: 2, label: 'Profile Screened',  color: 'bg-brand-teal' },
+  { step: 3, label: 'Training Enrolled', color: 'bg-brand-teal' },
+  { step: 4, label: 'Readiness Cleared', color: 'bg-brand-teal' },
+  { step: 5, label: 'Ethical Placement', color: 'bg-brand-gold' },
+  { step: 6, label: 'Deployed',          color: 'bg-violet-500' },
 ]
 
-const CURRENT_STAGE = 5
-
-const CHECKLIST = [
-  {
-    id: 'docs',
-    label: 'Identity Documents',
-    sublabel: 'Passport · NID · Birth Certificate',
-    status: 'complete' as const,
-    icon: FileText,
-    detail: 'Verified by FF OES compliance team · 12 Jun 2026',
-  },
-  {
-    id: 'contract',
-    label: 'Employment Contract',
-    sublabel: 'Bilingual EN/AR — MOHRE compliant',
-    status: 'complete' as const,
-    icon: ShieldCheck,
-    detail: 'Countersigned by Al-Rashid HR · 10 Jun 2026',
-  },
-  {
-    id: 'medical',
-    label: 'Medical Fitness Clearance',
-    sublabel: 'GCC approved clinic — Rawalpindi',
-    status: 'complete' as const,
-    icon: Stethoscope,
-    detail: 'Certificate valid through Dec 2026',
-  },
-  {
-    id: 'visa',
-    label: 'UAE Work Visa',
-    sublabel: 'Residence visa + work permit',
-    status: 'complete' as const,
-    icon: Globe,
-    detail: 'Visa stamped 15 Jun 2026 · Entry permit #UAE-88421',
-  },
-  {
-    id: 'language',
-    label: 'Language Proficiency',
-    sublabel: 'CEFR B1 English · Basic Arabic',
-    status: 'complete' as const,
-    icon: Languages,
-    detail: 'CEFR result logged on Workfly Skills record',
-  },
-  {
-    id: 'fee',
-    label: 'Zero Recruitment Fee',
-    sublabel: 'Candidate fee debt: AED 0.00',
-    status: 'complete' as const,
-    icon: CreditCard,
-    detail: 'Ethical compliance certificate issued',
-  },
-  {
-    id: 'flight',
-    label: 'Flight & Logistics',
-    sublabel: 'ISB → DXB · 22 Jun 2026',
-    status: 'pending' as const,
-    icon: Plane,
-    detail: 'Ticket confirmation awaited from employer',
-  },
-  {
-    id: 'employer',
-    label: 'Employer Onboarding Pack',
-    sublabel: 'Accommodation details + site induction',
-    status: 'pending' as const,
-    icon: Building2,
-    detail: 'Awaiting employer HR acknowledgment',
-  },
-]
-
-type ChecklistStatus = 'complete' | 'pending' | 'flagged'
-
-const statusConfig: Record<ChecklistStatus, { icon: ElementType; classes: string; label: string }> = {
-  complete: { icon: CheckCircle2, classes: 'text-brand-teal',  label: 'Verified'     },
-  pending:  { icon: Clock,        classes: 'text-brand-gold',  label: 'In Progress'  },
-  flagged:  { icon: Activity,     classes: 'text-red-400',     label: 'Flagged'      },
+const ITEM_ICON_MAP: Record<string, ElementType> = {
+  docs:     FileText,
+  contract: ShieldCheck,
+  medical:  Stethoscope,
+  visa:     Globe,
+  language: Languages,
+  fee:      CreditCard,
+  flight:   Plane,
+  employer: Building2,
 }
 
-// ── Component ──────────────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<ChecklistStatus, { icon: ElementType; classes: string; label: string }> = {
+  complete: { icon: CheckCircle2, classes: 'text-brand-teal', label: 'Verified'    },
+  pending:  { icon: Clock,        classes: 'text-brand-gold', label: 'In Progress' },
+  flagged:  { icon: Activity,     classes: 'text-red-400',    label: 'Flagged'     },
+}
 
 export default function ApplicantDashboard() {
   const { user } = useAuth()
-  const firstName = user?.fullName.split(' ')[0] ?? 'Candidate'
-
-  const [profileFormOpen, setProfileFormOpen]         = useState(false)
-  const [existingProfile, setExistingProfile]         = useState<Partial<TalentProfilePayload> | undefined>(undefined)
+  const [data, setData]                       = useState<DashboardData | null>(null)
+  const [loading, setLoading]                 = useState(true)
+  const [profileFormOpen, setProfileFormOpen] = useState(false)
+  const [existingProfile, setExistingProfile] = useState<Partial<TalentProfilePayload> | undefined>(undefined)
 
   useEffect(() => {
     if (!user) return
-    supabase
-      .from('talent_profiles')
-      .select('name,photo_url,role_title,location,experience_years,skills,languages,certifications,available')
-      .eq('id', user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setExistingProfile(data as Partial<TalentProfilePayload>)
-      })
+    getDashboardData(user.id).then(result => {
+      setData(result)
+      if (result.profile) {
+        setExistingProfile({
+          id:         user.id,
+          name:       result.profile.name,
+          role_title: result.profile.roleTitle,
+          location:   result.profile.location,
+        })
+      }
+      setLoading(false)
+    })
   }, [user])
 
-  const completedCount = CHECKLIST.filter(c => c.status === 'complete').length
-  const totalCount     = CHECKLIST.length
+  const firstName =
+    data?.profile?.name.split(' ')[0] ??
+    user?.fullName.split(' ')[0] ??
+    'Candidate'
+
+  if (loading) {
+    return (
+      <div className="pt-[96px] min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span className="text-sm">Loading your dashboard…</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data?.profile) {
+    return (
+      <div className="pt-[96px] min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-sm px-4">
+          <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mx-auto">
+            <UserPlus className="w-5 h-5 text-brand-gold" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground">Complete your profile</h2>
+          <p className="text-sm text-muted-foreground">
+            Your talent profile hasn't been set up yet. Contact the WorkforceX team to get onboarded.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data.placement) {
+    return (
+      <div className="pt-[96px] min-h-screen bg-background">
+        <section className="py-10 border-b border-border bg-card/30">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+            <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-2 block">
+              Applicant Status Portal
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              Welcome, <span className="text-brand-gold">{firstName}</span>
+            </h1>
+          </div>
+        </section>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">
+          <div className="text-center space-y-4 max-w-sm">
+            <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto">
+              <ClipboardList className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">No active placement</h2>
+            <p className="text-sm text-muted-foreground">
+              You haven't been matched to a job order yet. Our team will notify you when a placement is assigned.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const { profile, placement, checklist } = data
+  const currentStage   = placement.stage
+  const completedCount = checklist.filter(c => c.status === 'complete').length
+  const totalCount     = checklist.length
+  const avatarInitials = initialsOf(profile.name)
+
+  function handleProfileSaved() {
+    setProfileFormOpen(false)
+    if (user) {
+      getDashboardData(user.id).then(result => {
+        setData(result)
+        if (result.profile) {
+          setExistingProfile({
+            id:         user.id,
+            name:       result.profile.name,
+            role_title: result.profile.roleTitle,
+            location:   result.profile.location,
+          })
+        }
+      })
+    }
+  }
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
@@ -155,7 +180,7 @@ export default function ApplicantDashboard() {
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold/10 border border-brand-gold/20 self-start sm:self-auto">
               <Activity className="w-4 h-4 text-brand-gold" />
               <span className="text-[13px] font-semibold text-brand-gold tabular-nums">
-                Stage {CURRENT_STAGE} of 6
+                Stage {currentStage} of 6
               </span>
             </div>
           </div>
@@ -191,32 +216,38 @@ export default function ApplicantDashboard() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-lg font-bold text-brand-gold tabular-nums flex-shrink-0">
-                {user?.avatarInitials ?? 'AK'}
+              <div className="w-14 h-14 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-lg font-bold text-brand-gold flex-shrink-0">
+                {avatarInitials}
               </div>
               <div>
-                <h2 className="text-lg font-bold text-card-foreground">{user?.fullName ?? 'Ali Khan'}</h2>
-                <p className="text-sm text-muted-foreground">Construction Supervisor</p>
+                <h2 className="text-lg font-bold text-card-foreground">{profile.name}</h2>
+                <p className="text-sm text-muted-foreground">{profile.roleTitle}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                 <MapPin className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
-                <span>Rawalpindi, Punjab</span>
+                <span className="truncate">{profile.location}</span>
               </div>
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <Globe className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                <span>Destination: Dubai, UAE</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <Building2 className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
-                <span>Al-Rashid Construction LLC</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <Briefcase className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                <span className="tabular-nums">JO-2841</span>
-              </div>
+              {placement.destination && (
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <Globe className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
+                  <span className="truncate">Destination: {placement.destination}</span>
+                </div>
+              )}
+              {placement.employer && (
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <Building2 className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
+                  <span className="truncate">{placement.employer}</span>
+                </div>
+              )}
+              {placement.jobOrderCode && (
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <Briefcase className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
+                  <span className="tabular-nums">{placement.jobOrderCode}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -227,33 +258,31 @@ export default function ApplicantDashboard() {
                 Your Journey
               </span>
               <span className="text-[11px] font-semibold text-brand-gold tabular-nums">
-                {CURRENT_STAGE} / {PIPELINE_STAGES.length} Stages
+                {currentStage} / {PIPELINE_STAGES.length} Stages
               </span>
             </div>
 
-            {/* 6-segment bar */}
             <div className="flex gap-1">
               {PIPELINE_STAGES.map(stage => (
                 <div
                   key={stage.step}
                   className={`flex-1 h-2 rounded-full transition-all ${
-                    stage.step <= CURRENT_STAGE ? stage.color : 'bg-border'
+                    stage.step <= currentStage ? stage.color : 'bg-border'
                   }`}
                 />
               ))}
             </div>
 
-            {/* Stage list */}
             <div className="space-y-2">
               {PIPELINE_STAGES.map(stage => {
-                const isDone    = stage.step < CURRENT_STAGE
-                const isCurrent = stage.step === CURRENT_STAGE
-                const isFuture  = stage.step > CURRENT_STAGE
+                const isDone    = stage.step < currentStage
+                const isCurrent = stage.step === currentStage
+                const isFuture  = stage.step > currentStage
                 return (
                   <div key={stage.step} className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 tabular-nums ${
-                      isDone    ? 'bg-brand-teal/20'               :
-                      isCurrent ? 'bg-brand-gold/20'               :
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isDone    ? 'bg-brand-teal/20' :
+                      isCurrent ? 'bg-brand-gold/20' :
                                   'bg-border'
                     }`}>
                       {isDone ? (
@@ -277,7 +306,7 @@ export default function ApplicantDashboard() {
                       </span>
                     )}
                     {isFuture && (
-                      <span className="ml-auto text-[9px] text-muted-foreground/40 tabular-nums">
+                      <span className="ml-auto text-[9px] text-muted-foreground/40">
                         Upcoming
                       </span>
                     )}
@@ -289,73 +318,67 @@ export default function ApplicantDashboard() {
         </div>
 
         {/* ── Compliance Checklist ────────────────────────────────────────── */}
-        <div className="rounded-2xl bg-card border border-border overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-card-foreground">Compliance Checklist</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                All documents required for ethical deployment to UAE
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold text-brand-teal tabular-nums">
-                {completedCount}/{totalCount}
+        {checklist.length > 0 && (
+          <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-card-foreground">Compliance Checklist</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  All documents required for ethical deployment
+                </p>
               </div>
-              <div className="text-[10px] text-muted-foreground">Items Cleared</div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-brand-teal tabular-nums">
+                  {completedCount}/{totalCount}
+                </div>
+                <div className="text-[10px] text-muted-foreground">Items Cleared</div>
+              </div>
             </div>
-          </div>
 
-          {/* Progress bar */}
-          <div className="h-1 bg-border">
-            <div
-              className="h-full bg-brand-teal rounded-r-full transition-all duration-700"
-              style={{ width: `${(completedCount / totalCount) * 100}%` }}
-            />
-          </div>
+            <div className="h-1 bg-border">
+              <div
+                className="h-full bg-brand-teal rounded-r-full transition-all duration-700"
+                style={{ width: totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : '0%' }}
+              />
+            </div>
 
-          <div className="divide-y divide-border">
-            {CHECKLIST.map(item => {
-              const cfg = statusConfig[item.status]
-              const StatusIcon = cfg.icon
-              const ItemIcon   = item.icon
-              return (
-                <div key={item.id} className="flex items-start gap-4 px-6 py-4 hover:bg-muted/20 transition-colors">
-                  {/* Item icon */}
-                  <div className="w-8 h-8 rounded-lg bg-muted/50 border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ItemIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-
-                  {/* Labels */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-medium text-card-foreground">
-                        {item.label}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {item.sublabel}
-                      </span>
+            <div className="divide-y divide-border">
+              {checklist.map(item => {
+                const cfg        = STATUS_CONFIG[item.status]
+                const StatusIcon = cfg.icon
+                const ItemIcon   = ITEM_ICON_MAP[item.itemKey] ?? FileText
+                return (
+                  <div key={item.id} className="flex items-start gap-4 px-6 py-4 hover:bg-muted/20 transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-muted/50 border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <ItemIcon className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
-                    <p className="text-[11px] text-muted-foreground/70 mt-0.5 tabular-nums">
-                      {item.detail}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {/* Status badge */}
-                    <div className={`flex items-center gap-1 ${cfg.classes}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[13px] font-medium text-card-foreground">
+                          {item.label}
+                        </span>
+                        {item.sublabel && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {item.sublabel}
+                          </span>
+                        )}
+                      </div>
+                      {item.detail && (
+                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                          {item.detail}
+                        </p>
+                      )}
+                    </div>
+                    <div className={`flex items-center gap-1 flex-shrink-0 ${cfg.classes}`}>
                       <StatusIcon className="w-3.5 h-3.5" />
                       <span className="text-[11px] font-semibold">{cfg.label}</span>
                     </div>
-                    {/* Upload control for applicants */}
-                    {user && (
-                      <DocumentUpload userId={user.id} itemKey={item.id} />
-                    )}
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Support Banner ──────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-brand-teal/5 border border-brand-teal/15">
@@ -374,6 +397,7 @@ export default function ApplicantDashboard() {
         </div>
 
       </div>
+
       {/* ── Profile Edit Dialog ────────────────────────────────────────────── */}
       {user && (
         <Dialog.Root open={profileFormOpen} onOpenChange={setProfileFormOpen}>
@@ -387,16 +411,7 @@ export default function ApplicantDashboard() {
               <TalentProfileForm
                 userId={user.id}
                 existingProfile={existingProfile}
-                onSuccess={() => {
-                  setProfileFormOpen(false)
-                  // Re-fetch updated profile
-                  supabase
-                    .from('talent_profiles')
-                    .select('name,photo_url,role_title,location,experience_years,skills,languages,certifications,available')
-                    .eq('id', user.id)
-                    .maybeSingle()
-                    .then(({ data }) => { if (data) setExistingProfile(data as Partial<TalentProfilePayload>) })
-                }}
+                onSuccess={handleProfileSaved}
               />
             </Dialog.Content>
           </Dialog.Portal>

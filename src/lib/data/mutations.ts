@@ -113,6 +113,22 @@ export async function updateTalentProfile(
 
 // ── Companies ──────────────────────────────────────────────────────────────────
 
+export async function createCompany(name: string): Promise<MutationResult<{ id: string }>> {
+  const { data, error } = await supabase
+    .from('companies')
+    .insert({ name })
+    .select('id')
+    .single()
+  return { data: data as { id: string } | null, error: error?.message ?? null }
+}
+
+export async function joinCompany(userId: string, companyId: string): Promise<MutationResult> {
+  const { error } = await supabase
+    .from('company_members')
+    .insert({ user_id: userId, company_id: companyId })
+  return { data: null, error: error?.message ?? null }
+}
+
 export async function updateCompany(
   id: string,
   payload: Partial<CompanyPayload>
@@ -251,6 +267,24 @@ export async function updateCourseProgress(
     .update({ progress })
     .eq('talent_id', talentId)
     .eq('course_id', courseId)
+  return { data: null, error: error?.message ?? null }
+}
+
+// ── Saved Jobs ─────────────────────────────────────────────────────────────────
+
+export async function saveJob(userId: string, jobId: string): Promise<MutationResult> {
+  const { error } = await supabase
+    .from('saved_jobs')
+    .insert({ user_id: userId, job_id: jobId })
+  return { data: null, error: error?.message ?? null }
+}
+
+export async function unsaveJob(userId: string, jobId: string): Promise<MutationResult> {
+  const { error } = await supabase
+    .from('saved_jobs')
+    .delete()
+    .eq('user_id', userId)
+    .eq('job_id', jobId)
   return { data: null, error: error?.message ?? null }
 }
 

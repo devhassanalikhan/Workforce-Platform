@@ -20,9 +20,13 @@ import {
   Truck,
   HardHat,
   MapPin,
+  Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
-import { getCourses } from '@/lib/data/courses'
+import { useAuth } from '@/contexts/AuthContext'
+import { getCourses, getEnrollments, type EnrollmentInfo } from '@/lib/data/courses'
+import { enrollInCourse } from '@/lib/data/mutations'
 import type { Course } from '@/types/domain'
 
 const categories = [
@@ -96,14 +100,38 @@ const featuredStats = [
 ]
 
 export default function SkillsTraining() {
-  const [courses, setCourses] = useState<Course[]>([])
+  const { user } = useAuth()
+  const [courses, setCourses]           = useState<Course[]>([])
+  const [enrollments, setEnrollments]   = useState<Map<string, EnrollmentInfo>>(new Map())
+  const [enrolling, setEnrolling]       = useState<Set<string>>(new Set())
   const [activeCategory, setActiveCategory] = useState('all')
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation()
 
   useEffect(() => {
-    getCourses().then(setCourses)
-  }, [])
+    const fetchAll = async () => {
+      const [courseList, enrollmentMap] = await Promise.all([
+        getCourses(),
+        user?.role === 'applicant' ? getEnrollments(user.id) : Promise.resolve(new Map<string, EnrollmentInfo>()),
+      ])
+      setCourses(courseList)
+      setEnrollments(enrollmentMap)
+    }
+    fetchAll()
+  }, [user])
+
+  async function handleEnroll(courseId: string) {
+    if (!user) return
+    setEnrolling(prev => new Set(prev).add(courseId))
+    const { error } = await enrollInCourse(user.id, courseId)
+    setEnrolling(prev => { const s = new Set(prev); s.delete(courseId); return s })
+    if (error) {
+      toast.error('Could not enroll: ' + error)
+    } else {
+      toast.success('Enrolled successfully!')
+      setEnrollments(prev => new Map(prev).set(courseId, { progress: 0, completedAt: null }))
+    }
+  }
 
   const filteredCourses =
     activeCategory === 'all'
@@ -333,12 +361,63 @@ export default function SkillsTraining() {
                     </div>
                   </div>
 
-                  {/* CTA */}
-                  <button className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-brand-teal/10 text-brand-teal rounded-xl text-xs font-medium hover:bg-brand-teal/20 transition-all group/btn">
-                    <Play className="w-3.5 h-3.5" />
-                    Start Learning
-                    <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
-                  </button>
+                  {/* CTA — enrollment-aware */}
+                  {(() => {
+                    const enrollment = enrollments.get(course.id)
+                    const isEnrolling = enrolling.has(course.id)
+
+                    if (enrollment) {
+                      const pct = enrollment.progress
+                      const done = pct === 100
+                      return (
+                        <div className="mt-4 space-y-2">
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
+                            <span>Progress</span>
+                            <span>{pct}%</span>
+                          </div>
+                          <div className="h-1.5 bg-border rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${done ? 'bg-brand-gold' : 'bg-brand-teal'}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <button className={`w-full mt-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                            done
+                              ? 'bg-brand-gold/10 text-brand-gold hover:bg-brand-gold/20'
+                              : 'bg-brand-teal text-background hover:opacity-90'
+                          }`}>
+                            {done
+                              ? <><CheckCircle2 className="w-3.5 h-3.5" /> Completed</>
+                              : <><Play className="w-3.5 h-3.5" /> Continue Learning</>
+                            }
+                          </button>
+                        </div>
+                      )
+                    }
+
+                    if (user?.role === 'applicant') {
+                      return (
+                        <button
+                          onClick={() => handleEnroll(course.id)}
+                          disabled={isEnrolling}
+                          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-brand-teal/10 text-brand-teal rounded-xl text-xs font-medium hover:bg-brand-teal/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isEnrolling
+                            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Enrolling…</>
+                            : <><Play className="w-3.5 h-3.5" /> Enroll Now</>
+                          }
+                        </button>
+                      )
+                    }
+
+                    return (
+                      <button className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 bg-brand-teal/10 text-brand-teal rounded-xl text-xs font-medium hover:bg-brand-teal/20 transition-all group/btn">
+                        <Play className="w-3.5 h-3.5" />
+                        Start Learning
+                        <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                      </button>
+                    )
+                  })()}
                 </div>
               </div>
             ))}

@@ -31,12 +31,21 @@ const navLinks = [
   { label: 'Wasl',      href: '/wasl',       icon: Plane         },
 ]
 
-const moreLinks = [
+const BASE_MORE_LINKS = [
   { label: 'Trust & Safety', href: '/about',        icon: ShieldCheck },
   { label: 'AI Assistant',   href: '/ai-assistant', icon: Bot         },
   { label: 'Blog',           href: '/blog',         icon: BookOpen    },
-  { label: 'Employers',      href: '/employers',    icon: Building2   },
 ]
+
+function getMoreLinks(role: string | undefined) {
+  if (role === 'employer') {
+    return BASE_MORE_LINKS
+  }
+  if (role === 'admin' || role === 'super_admin') {
+    return [...BASE_MORE_LINKS, { label: 'Employer Portal', href: '/employer-portal', icon: Building2 }]
+  }
+  return [...BASE_MORE_LINKS, { label: 'Employers', href: '/employers', icon: Building2 }]
+}
 
 // ── Pipeline strip config ──────────────────────────────────────────────────────
 
@@ -81,7 +90,8 @@ export default function Navbar() {
   const isPillarPage = PILLAR_PATHS.includes(location.pathname)
   const activeSteps  = getActiveSteps(location.pathname)
 
-  // Role-aware nav: Talent/Placement/Wasl only for admin+; Dashboard injected for applicants
+  // Role-aware nav: Talent/Placement/Wasl only for admin+; Dashboard injected for
+  // applicants; My Portal injected for employers.
   const visibleNavLinks = (() => {
     const filtered = navLinks.filter(link => {
       if (link.href === '/talent' || link.href === '/placement' || link.href === '/wasl') {
@@ -95,8 +105,16 @@ export default function Navbar() {
         ...filtered,
       ]
     }
+    if (user?.role === 'employer') {
+      return [
+        ...filtered,
+        { label: 'My Portal', href: '/employer-portal', icon: Building2 },
+      ]
+    }
     return filtered
   })()
+
+  const moreLinks = getMoreLinks(user?.role)
 
   function handleSignOut() {
     signOut()

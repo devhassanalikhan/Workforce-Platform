@@ -95,20 +95,50 @@ export default function ApplicantDashboard() {
   if (!data?.profile) {
     return (
       <div className="pt-[96px] min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-sm px-4">
+        <div className="text-center space-y-6 max-w-sm px-4">
           <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center mx-auto">
             <UserPlus className="w-5 h-5 text-brand-gold" />
           </div>
-          <h2 className="text-lg font-bold text-foreground">Complete your profile</h2>
-          <p className="text-sm text-muted-foreground">
-            Your talent profile hasn't been set up yet. Contact the WorkforceX team to get onboarded.
-          </p>
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-foreground">Complete your profile</h2>
+            <p className="text-sm text-muted-foreground">
+              Your talent profile hasn't been set up yet. Create your profile now to unlock placements and compliant document uploads.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setProfileFormOpen(true)}
+              className="px-6 py-3 rounded-2xl bg-brand-gold text-black font-semibold transition hover:bg-brand-gold/90"
+            >
+              Create Profile
+            </button>
+          </div>
         </div>
+
+        {user && (
+          <Dialog.Root open={profileFormOpen} onOpenChange={setProfileFormOpen}>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+              <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl max-h-[90vh] overflow-y-auto -translate-x-1/2 -translate-y-1/2 bg-card border border-border rounded-2xl shadow-2xl p-6 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+                <div className="flex items-center justify-between mb-6">
+                  <Dialog.Title className="text-base font-semibold text-foreground">Create Your Profile</Dialog.Title>
+                  <Dialog.Close className="p-1.5 rounded-lg hover:bg-muted/60 text-muted-foreground transition-colors text-lg leading-none">&times;</Dialog.Close>
+                </div>
+                <TalentProfileForm
+                  userId={user.id}
+                  existingProfile={existingProfile}
+                  onSuccess={handleProfileSaved}
+                />
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+        )}
       </div>
     )
   }
 
   if (!data.placement) {
+    const profile = data.profile
     return (
       <div className="pt-[96px] min-h-screen bg-background">
         <section className="py-10 border-b border-border bg-card/30">
@@ -117,19 +147,103 @@ export default function ApplicantDashboard() {
               Applicant Status Portal
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Welcome, <span className="text-brand-gold">{firstName}</span>
+              Welcome back, <span className="text-brand-gold">{firstName}</span>
             </h1>
+            <p className="text-muted-foreground text-sm mt-1.5">
+              Your profile is ready. We are matching you to the best ethical placement.
+            </p>
           </div>
         </section>
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 flex items-center justify-center">
-          <div className="text-center space-y-4 max-w-sm">
-            <div className="w-12 h-12 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto">
-              <ClipboardList className="w-5 h-5 text-muted-foreground" />
+
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 grid gap-6 lg:grid-cols-[minmax(0,640px)_1fr]">
+          <div className="rounded-2xl bg-card border border-border p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Your Profile</h2>
+                <p className="text-sm text-muted-foreground">Applicant details and skills you provided.</p>
+              </div>
+              <button
+                onClick={() => setProfileFormOpen(true)}
+                className="px-3 py-2 rounded-xl bg-muted/70 text-muted-foreground hover:bg-muted transition"
+              >
+                Edit profile
+              </button>
             </div>
-            <h2 className="text-lg font-bold text-foreground">No active placement</h2>
-            <p className="text-sm text-muted-foreground">
-              You haven't been matched to a job order yet. Our team will notify you when a placement is assigned.
-            </p>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl bg-brand-gold/10 border border-brand-gold/20 p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Name</p>
+                <p className="font-semibold text-card-foreground">{profile.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">{profile.roleTitle}</p>
+              </div>
+              <div className="rounded-2xl bg-muted/40 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Location</p>
+                <p className="font-semibold text-card-foreground">{profile.location}</p>
+              </div>
+              <div className="rounded-2xl bg-muted/40 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Experience</p>
+                <p className="font-semibold text-card-foreground">{profile.experienceYears} years</p>
+              </div>
+              <div className="rounded-2xl bg-muted/40 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Availability</p>
+                <p className="font-semibold text-card-foreground">{profile.available ? 'Ready for deployment' : 'Not available'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {profile.skills.length > 0 && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills Applied</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map(skill => (
+                      <span key={skill} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {profile.languages.length > 0 && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.languages.map(lang => (
+                      <span key={lang} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {profile.certifications.length > 0 && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.certifications.map(cert => (
+                      <span key={cert} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-card border border-border p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <ClipboardList className="w-5 h-5 text-brand-gold" />
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">No active placement yet</h3>
+                <p className="text-sm text-muted-foreground">We will notify you once a matching job order is assigned.</p>
+              </div>
+            </div>
+            <div className="grid gap-3 text-sm text-muted-foreground">
+              <div className="rounded-2xl bg-muted/30 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">What’s next?</p>
+                <p className="mt-2">Our matching engine is reviewing your profile against live employer demand. Keep your profile updated for the best fit.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -249,6 +363,102 @@ export default function ApplicantDashboard() {
                 </div>
               )}
             </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
+              <div className="text-[12px] text-muted-foreground">
+                <div className="font-semibold text-card-foreground">Experience</div>
+                <div>{profile.experienceYears} years</div>
+              </div>
+              <div className="text-[12px] text-muted-foreground">
+                <div className="font-semibold text-card-foreground">Availability</div>
+                <div>{profile.available ? 'Ready for deployment' : 'Not currently available'}</div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-border space-y-3">
+              {profile.skills.length > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills</div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map(skill => (
+                      <span key={skill} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {profile.languages.length > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.languages.map(lang => (
+                      <span key={lang} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {lang}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {profile.certifications.length > 0 && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.certifications.map(cert => (
+                      <span key={cert} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Job Match Snapshot */}
+          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                  Job Match Snapshot
+                </span>
+                <h2 className="text-lg font-semibold text-card-foreground mt-2">{placement.jobTitle || 'Matched Opportunity'}</h2>
+              </div>
+            </div>
+
+            <div className="grid gap-3 text-sm text-muted-foreground">
+              {placement.employer && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-brand-teal" />
+                  <span>{placement.employer}</span>
+                </div>
+              )}
+              {placement.destination && (
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-brand-gold" />
+                  <span>{placement.destination}</span>
+                </div>
+              )}
+              {placement.jobOrderCode && (
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-brand-gold" />
+                  <span>Job Order {placement.jobOrderCode}</span>
+                </div>
+              )}
+            </div>
+
+            {placement.requirements.length > 0 && (
+              <div className="pt-4 border-t border-border">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Required Skills & Experience</div>
+                <div className="grid gap-2">
+                  {placement.requirements.map((req, index) => (
+                    <span key={index} className="inline-flex items-center rounded-full bg-muted border border-border px-3 py-1 text-[11px] text-foreground">
+                      {req}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Journey Pipeline */}
@@ -369,9 +579,14 @@ export default function ApplicantDashboard() {
                         </p>
                       )}
                     </div>
-                    <div className={`flex items-center gap-1 flex-shrink-0 ${cfg.classes}`}>
-                      <StatusIcon className="w-3.5 h-3.5" />
-                      <span className="text-[11px] font-semibold">{cfg.label}</span>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div className={`flex items-center gap-1 ${cfg.classes}`}>
+                        <StatusIcon className="w-3.5 h-3.5" />
+                        <span className="text-[11px] font-semibold">{cfg.label}</span>
+                      </div>
+                      {user && (
+                        <DocumentUpload userId={user.id} itemKey={item.itemKey} />
+                      )}
                     </div>
                   </div>
                 )

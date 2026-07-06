@@ -5,6 +5,12 @@ export interface DashboardProfile {
   name: string
   roleTitle: string
   location: string
+  experienceYears: number
+  skills: string[]
+  languages: string[]
+  certifications: string[]
+  available: boolean
+  photoUrl: string | null
 }
 
 export interface DashboardPlacement {
@@ -13,6 +19,8 @@ export interface DashboardPlacement {
   jobOrderCode: string
   destination: string
   employer: string
+  jobTitle: string
+  requirements: string[]
 }
 
 export interface DashboardChecklistItem {
@@ -34,13 +42,19 @@ interface ProfileRow {
   name: string
   role_title: string
   location: string
+  experience_years: number
+  skills: string[]
+  languages: string[]
+  certifications: string[]
+  available: boolean
+  photo_url: string | null
 }
 
 interface PlacementRow {
   id: string
   stage: number
   job_order_code: string
-  jobs: { title: string; location: string; companies: { name: string } | null } | null
+  jobs: { title: string; location: string; requirements: string[] | null; companies: { name: string } | null } | null
 }
 
 interface ChecklistRow {
@@ -56,12 +70,12 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const [profileResult, placementResult] = await Promise.all([
     supabase
       .from('talent_profiles')
-      .select('name, role_title, location')
+      .select('name, role_title, location, experience_years, skills, languages, certifications, available, photo_url')
       .eq('id', userId)
       .maybeSingle(),
     supabase
       .from('placements')
-      .select('id, stage, job_order_code, jobs(title, location, companies(name))')
+      .select('id, stage, job_order_code, jobs(title, location, requirements, companies(name))')
       .eq('talent_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -73,6 +87,12 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
         name: (profileResult.data as ProfileRow).name,
         roleTitle: (profileResult.data as ProfileRow).role_title,
         location: (profileResult.data as ProfileRow).location,
+        experienceYears: (profileResult.data as ProfileRow).experience_years,
+        skills: (profileResult.data as ProfileRow).skills ?? [],
+        languages: (profileResult.data as ProfileRow).languages ?? [],
+        certifications: (profileResult.data as ProfileRow).certifications ?? [],
+        available: (profileResult.data as ProfileRow).available ?? true,
+        photoUrl: (profileResult.data as ProfileRow).photo_url ?? null,
       }
     : null
 
@@ -87,6 +107,8 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     jobOrderCode: row.job_order_code,
     destination: row.jobs?.location ?? '',
     employer: row.jobs?.companies?.name ?? '',
+    jobTitle: row.jobs?.title ?? '',
+    requirements: row.jobs?.requirements ?? [],
   }
 
   const { data: checklistData } = await supabase

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { UploadCloud, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'

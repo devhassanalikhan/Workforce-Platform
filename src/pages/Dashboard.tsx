@@ -1,7 +1,6 @@
 import { useState, useEffect, type ElementType } from 'react'
+import { Routes, Route, NavLink, Navigate } from 'react-router'
 import {
-  MapPin,
-  Briefcase,
   CheckCircle2,
   Clock,
   ShieldCheck,
@@ -15,26 +14,14 @@ import {
   Activity,
   Loader2,
   UserPlus,
-  ClipboardList,
-  Pencil,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useAuth } from '@/contexts/AuthContext'
-import { getDashboardData, type DashboardData } from '@/lib/data/dashboard'
-import { initialsOf } from '@/lib/initials'
+import { getDashboardData, type DashboardData, type DashboardProfile, type DashboardPlacement, type DashboardChecklistItem } from '@/lib/data/dashboard'
 import TalentProfileForm from '@/components/profile/TalentProfileForm'
 import DocumentUpload from '@/components/profile/DocumentUpload'
 import type { TalentProfilePayload } from '@/lib/data/mutations'
 import type { ChecklistStatus } from '@/types/domain'
-
-const PIPELINE_STAGES = [
-  { step: 1, label: 'Job Order Matched', color: 'bg-brand-teal' },
-  { step: 2, label: 'Profile Screened',  color: 'bg-brand-teal' },
-  { step: 3, label: 'Training Enrolled', color: 'bg-brand-teal' },
-  { step: 4, label: 'Readiness Cleared', color: 'bg-brand-teal' },
-  { step: 5, label: 'Ethical Placement', color: 'bg-brand-gold' },
-  { step: 6, label: 'Deployed',          color: 'bg-violet-500' },
-]
 
 const ITEM_ICON_MAP: Record<string, ElementType> = {
   docs:     FileText,
@@ -51,6 +38,356 @@ const STATUS_CONFIG: Record<ChecklistStatus, { icon: ElementType; classes: strin
   complete: { icon: CheckCircle2, classes: 'text-brand-teal', label: 'Verified'    },
   pending:  { icon: Clock,        classes: 'text-brand-gold', label: 'In Progress' },
   flagged:  { icon: Activity,     classes: 'text-red-400',    label: 'Flagged'     },
+}
+
+const DASHBOARD_TABS = [
+  { id: 'profile', label: 'Profile' },
+  { id: 'applications', label: 'Applications' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'compliance', label: 'Compliance' },
+  { id: 'relocation', label: 'Visa & Relocation' },
+] as const
+
+function DashboardSubNavbar() {
+  return (
+    <div className="sticky top-[60px] z-40 border-b border-border bg-background">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap gap-2 py-3">
+          {DASHBOARD_TABS.map(tab => (
+            <NavLink
+              key={tab.id}
+              to={`/dashboard/${tab.id}`}
+              end
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                  isActive
+                    ? 'bg-brand-gold text-black'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                }`
+              }
+            >
+              {tab.label}
+            </NavLink>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfileTab({ profile, placement, onEditProfile }: {
+  profile: DashboardProfile
+  placement: DashboardPlacement | null
+  onEditProfile: () => void
+}) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <div className="rounded-2xl bg-card border border-border p-6 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Profile Overview</h2>
+            <p className="text-sm text-muted-foreground">Your applicant details and career readiness summary.</p>
+          </div>
+          <button
+            onClick={onEditProfile}
+            className="px-3 py-2 rounded-xl bg-muted/70 text-muted-foreground hover:bg-muted transition"
+          >
+            Edit profile
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl bg-brand-gold/10 border border-brand-gold/20 p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Name</p>
+            <p className="font-semibold text-card-foreground">{profile.name}</p>
+            <p className="text-sm text-muted-foreground mt-1">{profile.roleTitle}</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Location</p>
+            <p className="font-semibold text-card-foreground">{profile.location}</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Experience</p>
+            <p className="font-semibold text-card-foreground">{profile.experienceYears} years</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Availability</p>
+            <p className="font-semibold text-card-foreground">{profile.available ? 'Ready for deployment' : 'Not available'}</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {profile.skills.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map(skill => (
+                  <span key={skill} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {profile.languages.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</p>
+              <div className="flex flex-wrap gap-2">
+                {profile.languages.map(lang => (
+                  <span key={lang} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                    {lang}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {profile.certifications.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</p>
+              <div className="flex flex-wrap gap-2">
+                {profile.certifications.map(cert => (
+                  <span key={cert} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                    {cert}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Match Snapshot</h3>
+        {placement ? (
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-muted/40 border border-border p-4">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Current position</p>
+              <p className="font-semibold text-card-foreground">{placement.jobTitle}</p>
+              <p className="text-sm text-muted-foreground mt-1">Order {placement.jobOrderCode}</p>
+            </div>
+            <div className="grid gap-3">
+              <div className="rounded-2xl bg-muted/40 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Employer</p>
+                <p className="font-semibold text-card-foreground">{placement.employer}</p>
+              </div>
+              <div className="rounded-2xl bg-muted/40 border border-border p-4">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Destination</p>
+                <p className="font-semibold text-card-foreground">{placement.destination}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-muted/40 border border-border p-6 text-center">
+            <p className="text-sm text-muted-foreground">No active placement yet. We are matching you to ethical opportunities.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ApplicationsTab({ placement }: { placement: DashboardPlacement | null }) {
+  if (!placement) {
+    return (
+      <div className="rounded-2xl bg-card border border-border p-6 text-center">
+        <h2 className="text-lg font-semibold text-foreground">Applications Tracker</h2>
+        <p className="mt-3 text-sm text-muted-foreground">You have not been assigned to a placement yet. Your applications are still under review.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Current application</p>
+            <h2 className="text-xl font-semibold text-foreground">{placement.jobTitle}</h2>
+            <p className="text-sm text-muted-foreground mt-1">Job Order {placement.jobOrderCode}</p>
+          </div>
+          <div className="rounded-full bg-brand-gold/10 px-3 py-1 text-[11px] font-semibold text-brand-gold">Stage {placement.stage}</div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Employer</p>
+            <p className="font-semibold text-card-foreground">{placement.employer}</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Destination</p>
+            <p className="font-semibold text-card-foreground">{placement.destination}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Application milestones</h3>
+        <div className="grid gap-3">
+          {DASHBOARD_TABS.slice(0, 4).map(tab => (
+            <div key={tab.id} className="rounded-2xl bg-muted/40 border border-border p-4">
+              <p className="text-sm font-medium text-card-foreground">{tab.label}</p>
+              <p className="text-sm text-muted-foreground mt-1">Reviewing your {tab.label.toLowerCase()} details for compliance and fit.</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SkillsTab({ profile }: { profile: DashboardProfile }) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[0.9fr_0.9fr]">
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Key skills and certifications</h2>
+        <div className="space-y-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills</p>
+            <div className="flex flex-wrap gap-2">
+              {profile.skills.map(skill => (
+                <span key={skill} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</p>
+            <div className="flex flex-wrap gap-2">
+              {profile.languages.map(lang => (
+                <span key={lang} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                  {lang}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</p>
+            <div className="flex flex-wrap gap-2">
+              {profile.certifications.map(cert => (
+                <span key={cert} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
+                  {cert}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Skills progress</h2>
+        <p className="text-sm text-muted-foreground">Continue building your profile value with targeted training and certifications aligned to placement demand.</p>
+        <div className="mt-6 rounded-2xl bg-muted/40 border border-border p-4">
+          <p className="text-sm font-semibold text-foreground">Tip</p>
+          <p className="text-sm text-muted-foreground mt-2">Update this tab as you complete new training so the matching engine can surface the best opportunities.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ComplianceTab({ checklist, userId }: { checklist: DashboardChecklistItem[]; userId: string }) {
+  if (checklist.length === 0) {
+    return (
+      <div className="rounded-2xl bg-card border border-border p-6 text-center">
+        <h2 className="text-lg font-semibold text-foreground">Compliance Vault</h2>
+        <p className="mt-3 text-sm text-muted-foreground">No compliance items are available yet. This section will show required documents and upload actions once you have an active placement.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl bg-card border border-border overflow-hidden">
+      <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Compliance Vault</h2>
+          <p className="text-sm text-muted-foreground">Upload documents and track verification status.</p>
+        </div>
+        <div className="text-sm text-muted-foreground">{checklist.filter(item => item.status === 'complete').length}/{checklist.length} completed</div>
+      </div>
+      <div className="divide-y divide-border">
+        {checklist.map(item => {
+          const cfg = STATUS_CONFIG[item.status]
+          const ItemIcon = ITEM_ICON_MAP[item.itemKey] ?? FileText
+          return (
+            <div key={item.id} className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-muted/50 border border-border flex items-center justify-center">
+                  <ItemIcon className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">{item.label}</p>
+                  {item.sublabel && <p className="text-sm text-muted-foreground mt-1">{item.sublabel}</p>}
+                  {item.detail && <p className="text-sm text-muted-foreground mt-1">{item.detail}</p>}
+                </div>
+              </div>
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                <div className={`flex items-center gap-1 text-[11px] font-semibold ${cfg.classes}`}>
+                  <cfg.icon className="w-3.5 h-3.5" />
+                  <span>{cfg.label}</span>
+                </div>
+                <DocumentUpload userId={userId} itemKey={item.itemKey} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function RelocationTab({ placement, checklist }: { placement: DashboardPlacement | null; checklist: DashboardChecklistItem[] }) {
+  if (!placement) {
+    return (
+      <div className="rounded-2xl bg-card border border-border p-6 text-center">
+        <h2 className="text-lg font-semibold text-foreground">Visa & Relocation</h2>
+        <p className="mt-3 text-sm text-muted-foreground">Relocation milestones will appear once you are matched to a placement.</p>
+      </div>
+    )
+  }
+
+  const relocationItems = checklist.filter(item => ['visa', 'flight', 'employer', 'medical'].includes(item.itemKey))
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[0.9fr_0.9fr]">
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Relocation Overview</h2>
+        <div className="grid gap-3">
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Destination</p>
+            <p className="font-semibold text-card-foreground">{placement.destination}</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Current stage</p>
+            <p className="font-semibold text-card-foreground">Stage {placement.stage} of 6</p>
+          </div>
+          <div className="rounded-2xl bg-muted/40 border border-border p-4">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Job order</p>
+            <p className="font-semibold text-card-foreground">{placement.jobOrderCode}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-card border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Relocation checklist</h2>
+        {relocationItems.length > 0 ? (
+          <div className="space-y-3">
+            {relocationItems.map(item => (
+              <div key={item.id} className="rounded-2xl bg-muted/40 border border-border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-card-foreground">{item.label}</p>
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-[0.15em]">{item.status}</span>
+                </div>
+                {item.detail && <p className="text-sm text-muted-foreground mt-2">{item.detail}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">We're still collecting relocation milestones for your placement.</p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default function ApplicantDashboard() {
@@ -75,6 +412,23 @@ export default function ApplicantDashboard() {
       setLoading(false)
     })
   }, [user])
+
+  function handleProfileSaved() {
+    setProfileFormOpen(false)
+    if (user) {
+      getDashboardData(user.id).then(result => {
+        setData(result)
+        if (result.profile) {
+          setExistingProfile({
+            id:         user.id,
+            name:       result.profile.name,
+            role_title: result.profile.roleTitle,
+            location:   result.profile.location,
+          })
+        }
+      })
+    }
+  }
 
   const firstName =
     data?.profile?.name.split(' ')[0] ??
@@ -137,146 +491,11 @@ export default function ApplicantDashboard() {
     )
   }
 
-  if (!data.placement) {
-    const profile = data.profile
-    return (
-      <div className="pt-[96px] min-h-screen bg-background">
-        <section className="py-10 border-b border-border bg-card/30">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] mb-2 block">
-              Applicant Status Portal
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Welcome back, <span className="text-brand-gold">{firstName}</span>
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1.5">
-              Your profile is ready. We are matching you to the best ethical placement.
-            </p>
-          </div>
-        </section>
-
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 grid gap-6 lg:grid-cols-[minmax(0,640px)_1fr]">
-          <div className="rounded-2xl bg-card border border-border p-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Your Profile</h2>
-                <p className="text-sm text-muted-foreground">Applicant details and skills you provided.</p>
-              </div>
-              <button
-                onClick={() => setProfileFormOpen(true)}
-                className="px-3 py-2 rounded-xl bg-muted/70 text-muted-foreground hover:bg-muted transition"
-              >
-                Edit profile
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-brand-gold/10 border border-brand-gold/20 p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Name</p>
-                <p className="font-semibold text-card-foreground">{profile.name}</p>
-                <p className="text-sm text-muted-foreground mt-1">{profile.roleTitle}</p>
-              </div>
-              <div className="rounded-2xl bg-muted/40 border border-border p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Location</p>
-                <p className="font-semibold text-card-foreground">{profile.location}</p>
-              </div>
-              <div className="rounded-2xl bg-muted/40 border border-border p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Experience</p>
-                <p className="font-semibold text-card-foreground">{profile.experienceYears} years</p>
-              </div>
-              <div className="rounded-2xl bg-muted/40 border border-border p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Availability</p>
-                <p className="font-semibold text-card-foreground">{profile.available ? 'Ready for deployment' : 'Not available'}</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {profile.skills.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills Applied</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.skills.map(skill => (
-                      <span key={skill} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.languages.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.languages.map(lang => (
-                      <span key={lang} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.certifications.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.certifications.map(cert => (
-                      <span key={cert} className="px-3 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-card border border-border p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <ClipboardList className="w-5 h-5 text-brand-gold" />
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">No active placement yet</h3>
-                <p className="text-sm text-muted-foreground">We will notify you once a matching job order is assigned.</p>
-              </div>
-            </div>
-            <div className="grid gap-3 text-sm text-muted-foreground">
-              <div className="rounded-2xl bg-muted/30 border border-border p-4">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">What’s next?</p>
-                <p className="mt-2">Our matching engine is reviewing your profile against live employer demand. Keep your profile updated for the best fit.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const { profile, placement, checklist } = data
-  const currentStage   = placement.stage
-  const completedCount = checklist.filter(c => c.status === 'complete').length
-  const totalCount     = checklist.length
-  const avatarInitials = initialsOf(profile.name)
-
-  function handleProfileSaved() {
-    setProfileFormOpen(false)
-    if (user) {
-      getDashboardData(user.id).then(result => {
-        setData(result)
-        if (result.profile) {
-          setExistingProfile({
-            id:         user.id,
-            name:       result.profile.name,
-            role_title: result.profile.roleTitle,
-            location:   result.profile.location,
-          })
-        }
-      })
-    }
-  }
+  const currentStage = placement?.stage ?? 0
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
-
-      {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <section className="py-10 border-b border-border bg-card/30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -288,329 +507,38 @@ export default function ApplicantDashboard() {
                 Welcome back, <span className="text-brand-gold">{firstName}</span>
               </h1>
               <p className="text-muted-foreground text-sm mt-1.5">
-                Track your personal placement journey and document compliance status in real time.
+                {placement
+                  ? 'Track your personal placement journey and document compliance status in real time.'
+                  : 'Your profile is ready. We are matching you to the best ethical placement.'}
               </p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold/10 border border-brand-gold/20 self-start sm:self-auto">
-              <Activity className="w-4 h-4 text-brand-gold" />
-              <span className="text-[13px] font-semibold text-brand-gold tabular-nums">
-                Stage {currentStage} of 6
-              </span>
-            </div>
+            {placement ? (
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-gold/10 border border-brand-gold/20 self-start sm:self-auto">
+                <Activity className="w-4 h-4 text-brand-gold" />
+                <span className="text-[13px] font-semibold text-brand-gold tabular-nums">
+                  Stage {currentStage} of 6
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
+      <DashboardSubNavbar />
+
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-
-        {/* ── Top row: Profile card + Pipeline ───────────────────────────── */}
-        <div className="grid lg:grid-cols-2 gap-5">
-
-          {/* Profile Card */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Your Profile
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/25">
-                  <ShieldCheck className="w-3 h-3 text-brand-teal" />
-                  <span className="text-[9px] font-semibold text-brand-teal">Verified</span>
-                </div>
-                <button
-                  id="edit-profile-btn"
-                  onClick={() => setProfileFormOpen(true)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
-                  title="Edit your profile"
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span className="text-[10px] font-medium">Edit</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-lg font-bold text-brand-gold flex-shrink-0">
-                {avatarInitials}
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-card-foreground">{profile.name}</h2>
-                <p className="text-sm text-muted-foreground">{profile.roleTitle}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
-                <span className="truncate">{profile.location}</span>
-              </div>
-              {placement.destination && (
-                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <Globe className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                  <span className="truncate">Destination: {placement.destination}</span>
-                </div>
-              )}
-              {placement.employer && (
-                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <Building2 className="w-3.5 h-3.5 text-brand-teal flex-shrink-0" />
-                  <span className="truncate">{placement.employer}</span>
-                </div>
-              )}
-              {placement.jobOrderCode && (
-                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                  <Briefcase className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                  <span className="tabular-nums">{placement.jobOrderCode}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
-              <div className="text-[12px] text-muted-foreground">
-                <div className="font-semibold text-card-foreground">Experience</div>
-                <div>{profile.experienceYears} years</div>
-              </div>
-              <div className="text-[12px] text-muted-foreground">
-                <div className="font-semibold text-card-foreground">Availability</div>
-                <div>{profile.available ? 'Ready for deployment' : 'Not currently available'}</div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-border space-y-3">
-              {profile.skills.length > 0 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Skills</div>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.skills.map(skill => (
-                      <span key={skill} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.languages.length > 0 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Languages</div>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.languages.map(lang => (
-                      <span key={lang} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {profile.certifications.length > 0 && (
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Certifications</div>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.certifications.map(cert => (
-                      <span key={cert} className="px-2.5 py-1 rounded-full bg-muted border border-border text-[11px] text-foreground">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Job Match Snapshot */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                  Job Match Snapshot
-                </span>
-                <h2 className="text-lg font-semibold text-card-foreground mt-2">{placement.jobTitle || 'Matched Opportunity'}</h2>
-              </div>
-            </div>
-
-            <div className="grid gap-3 text-sm text-muted-foreground">
-              {placement.employer && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-brand-teal" />
-                  <span>{placement.employer}</span>
-                </div>
-              )}
-              {placement.destination && (
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-brand-gold" />
-                  <span>{placement.destination}</span>
-                </div>
-              )}
-              {placement.jobOrderCode && (
-                <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-brand-gold" />
-                  <span>Job Order {placement.jobOrderCode}</span>
-                </div>
-              )}
-            </div>
-
-            {placement.requirements.length > 0 && (
-              <div className="pt-4 border-t border-border">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Required Skills & Experience</div>
-                <div className="grid gap-2">
-                  {placement.requirements.map((req, index) => (
-                    <span key={index} className="inline-flex items-center rounded-full bg-muted border border-border px-3 py-1 text-[11px] text-foreground">
-                      {req}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Journey Pipeline */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Your Journey
-              </span>
-              <span className="text-[11px] font-semibold text-brand-gold tabular-nums">
-                {currentStage} / {PIPELINE_STAGES.length} Stages
-              </span>
-            </div>
-
-            <div className="flex gap-1">
-              {PIPELINE_STAGES.map(stage => (
-                <div
-                  key={stage.step}
-                  className={`flex-1 h-2 rounded-full transition-all ${
-                    stage.step <= currentStage ? stage.color : 'bg-border'
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              {PIPELINE_STAGES.map(stage => {
-                const isDone    = stage.step < currentStage
-                const isCurrent = stage.step === currentStage
-                const isFuture  = stage.step > currentStage
-                return (
-                  <div key={stage.step} className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      isDone    ? 'bg-brand-teal/20' :
-                      isCurrent ? 'bg-brand-gold/20' :
-                                  'bg-border'
-                    }`}>
-                      {isDone ? (
-                        <CheckCircle2 className="w-3 h-3 text-brand-teal" />
-                      ) : (
-                        <span className={`text-[9px] font-bold ${isCurrent ? 'text-brand-gold' : 'text-muted-foreground/40'}`}>
-                          {stage.step}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`text-[12px] font-medium ${
-                      isDone    ? 'text-muted-foreground line-through' :
-                      isCurrent ? 'text-brand-gold'                   :
-                                  'text-muted-foreground/50'
-                    }`}>
-                      {stage.label}
-                    </span>
-                    {isCurrent && (
-                      <span className="ml-auto text-[9px] font-bold text-brand-gold bg-brand-gold/10 border border-brand-gold/20 px-1.5 py-0.5 rounded-full">
-                        CURRENT
-                      </span>
-                    )}
-                    {isFuture && (
-                      <span className="ml-auto text-[9px] text-muted-foreground/40">
-                        Upcoming
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Compliance Checklist ────────────────────────────────────────── */}
-        {checklist.length > 0 && (
-          <div className="rounded-2xl bg-card border border-border overflow-hidden">
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-card-foreground">Compliance Checklist</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  All documents required for ethical deployment
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-bold text-brand-teal tabular-nums">
-                  {completedCount}/{totalCount}
-                </div>
-                <div className="text-[10px] text-muted-foreground">Items Cleared</div>
-              </div>
-            </div>
-
-            <div className="h-1 bg-border">
-              <div
-                className="h-full bg-brand-teal rounded-r-full transition-all duration-700"
-                style={{ width: totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : '0%' }}
-              />
-            </div>
-
-            <div className="divide-y divide-border">
-              {checklist.map(item => {
-                const cfg        = STATUS_CONFIG[item.status]
-                const StatusIcon = cfg.icon
-                const ItemIcon   = ITEM_ICON_MAP[item.itemKey] ?? FileText
-                return (
-                  <div key={item.id} className="flex items-start gap-4 px-6 py-4 hover:bg-muted/20 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-muted/50 border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <ItemIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[13px] font-medium text-card-foreground">
-                          {item.label}
-                        </span>
-                        {item.sublabel && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {item.sublabel}
-                          </span>
-                        )}
-                      </div>
-                      {item.detail && (
-                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                          {item.detail}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                      <div className={`flex items-center gap-1 ${cfg.classes}`}>
-                        <StatusIcon className="w-3.5 h-3.5" />
-                        <span className="text-[11px] font-semibold">{cfg.label}</span>
-                      </div>
-                      {user && (
-                        <DocumentUpload userId={user.id} itemKey={item.itemKey} />
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Support Banner ──────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-brand-teal/5 border border-brand-teal/15">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="w-5 h-5 text-brand-teal flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-card-foreground">Your rights are protected.</p>
-              <p className="text-[11px] text-muted-foreground">
-                WorkforceX guarantees zero recruitment fee and full ethical compliance under international labour standards.
-              </p>
-            </div>
-          </div>
-          <button className="text-[12px] font-semibold text-brand-teal border border-brand-teal/30 px-4 py-2 rounded-xl hover:bg-brand-teal/10 transition-all flex-shrink-0">
-            Contact Support
-          </button>
-        </div>
-
+        <Routes>
+          <Route index element={<Navigate replace to="/dashboard/profile" />} />
+          <Route
+            path="profile"
+            element={<ProfileTab profile={profile} placement={placement} onEditProfile={() => setProfileFormOpen(true)} />}
+          />
+          <Route path="applications" element={<ApplicationsTab placement={placement} />} />
+          <Route path="skills" element={<SkillsTab profile={profile} />} />
+          <Route path="compliance" element={<ComplianceTab checklist={checklist} userId={user?.id ?? ''} />} />
+          <Route path="relocation" element={<RelocationTab placement={placement} checklist={checklist} />} />
+          <Route path="*" element={<Navigate replace to="/dashboard/profile" />} />
+        </Routes>
       </div>
 
       {/* ── Profile Edit Dialog ────────────────────────────────────────────── */}

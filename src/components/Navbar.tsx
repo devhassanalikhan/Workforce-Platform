@@ -132,7 +132,8 @@ export default function Navbar() {
     setMoreOpen(false)
   }, [location.pathname])
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) =>
+    location.pathname === path || (path === '/dashboard' && location.pathname.startsWith('/dashboard'))
 
   return (
     <nav

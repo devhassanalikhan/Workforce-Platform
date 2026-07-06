@@ -47,7 +47,7 @@ function App() {
                 <Route path="/signup"      element={<SignupPage />} />
 
                 {/* ── applicant+ ─────────────────────────────────────────── */}
-                <Route path="/dashboard" element={
+                <Route path="/dashboard/*" element={
                   <ProtectedRoute requiredRole="applicant">
                     <ApplicantDashboard />
                   </ProtectedRoute>

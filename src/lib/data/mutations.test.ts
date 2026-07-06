@@ -105,6 +105,32 @@ describe('mutations data-layer helpers', () => {
     expect(chain.upsert).toHaveBeenCalledWith(expect.objectContaining({ id: 'user-1' }), { onConflict: 'id' })
   })
 
+  it('applies to a job with cover note and job order code', async () => {
+    const chain = {
+      insert: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { id: 'placement-1' }, error: null }),
+    }
+    fromMock.mockReturnValue(chain)
+
+    const result = await applyToJob({
+      talent_id: 'user-1',
+      job_id: 'job-1',
+      stage: 1,
+      job_order_code: 'JO-JOB-1',
+      cover_note: 'I am excited about this role',
+    })
+
+    expect(chain.insert).toHaveBeenCalledWith(expect.objectContaining({
+      talent_id: 'user-1',
+      job_id: 'job-1',
+      stage: 1,
+      job_order_code: 'JO-JOB-1',
+      cover_note: 'I am excited about this role',
+    }))
+    expect(result).toEqual({ data: { id: 'placement-1' }, error: null })
+  })
+
   it('updates a placement stage by id', async () => {
     const chain = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) }
     fromMock.mockReturnValue(chain)

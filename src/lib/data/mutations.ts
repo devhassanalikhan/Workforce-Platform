@@ -42,6 +42,7 @@ export interface PlacementPayload {
   job_id: string
   stage: number
   job_order_code: string
+  cover_note?: string
 }
 
 export interface ChecklistItemUpdate {

@@ -1,3 +1,5 @@
+// src/lib/data/jobs.ts
+
 import { supabase } from '@/lib/supabase'
 import { mockJobs } from '@/data/mockJobs'
 import type { Job } from '@/types/domain'
@@ -63,6 +65,20 @@ export async function getSavedJobIds(userId: string): Promise<Set<string>> {
     .eq('user_id', userId)
 
   return new Set(((data ?? []) as { job_id: string }[]).map(r => r.job_id))
+}
+
+// Returns the set of job IDs the applicant has already applied to (i.e. has
+// an existing placements row for), so the UI can show "Already Applied"
+// instead of letting them hit the unique_talent_job constraint. Empty Set
+// for guests or applicants with no applications yet.
+export async function getAppliedJobIds(userId: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('placements')
+    .select('job_id')
+    .eq('talent_id', userId)
+
+  if (error || !data) return new Set()
+  return new Set((data as { job_id: string }[]).map(r => r.job_id))
 }
 
 // Falls back to bundled demo listings whenever the live `jobs` table has no

@@ -1,3 +1,5 @@
+// src/pages/JobsMarketplace.tsx
+
 import { useEffect, useState } from 'react'
 import {
   Search,
@@ -15,14 +17,16 @@ import {
   X,
   Globe,
   Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
 import { hasRole } from '@/lib/rbac'
-import { getJobs, getSavedJobIds } from '@/lib/data/jobs'
+import { getJobs, getSavedJobIds, getAppliedJobIds } from '@/lib/data/jobs'
 import { saveJob, unsaveJob } from '@/lib/data/mutations'
 import ScraperPanel from '@/components/admin/ScraperPanel'
+import JobDetailModal from '@/components/jobs/jobdetailmodal'
 import type { Job } from '@/types/domain'
 
 const jobCategories = [
@@ -65,10 +69,15 @@ export default function JobsMarketplace() {
   const [selectedSalary, setSelectedSalary] = useState('All Ranges')
   const [sortBy, setSortBy] = useState('Relevance')
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set())
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set())
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [showSavedOnly, setShowSavedOnly] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
+
+  const isApplicant = user?.role === 'applicant'
 
   useEffect(() => {
     getJobs().then(setJobs)
@@ -77,9 +86,11 @@ export default function JobsMarketplace() {
   useEffect(() => {
     if (!user?.id) {
       setSavedJobs(new Set())
+      setAppliedJobs(new Set())
       return
     }
     getSavedJobIds(user.id).then(setSavedJobs)
+    getAppliedJobIds(user.id).then(setAppliedJobs)
   }, [user?.id])
 
   const toggleSave = async (jobId: string) => {
@@ -111,6 +122,15 @@ export default function JobsMarketplace() {
       })
       toast.error('Could not update saved jobs. Please try again.')
     }
+  }
+
+  function openJobDetails(job: Job) {
+    setSelectedJob(job)
+    setDetailOpen(true)
+  }
+
+  function handleApplySuccess(jobId: string) {
+    setAppliedJobs(prev => new Set(prev).add(jobId))
   }
 
   const filteredJobs = jobs.filter(job => {
@@ -392,112 +412,126 @@ export default function JobsMarketplace() {
 
               {/* Job Cards */}
               <div className="space-y-4">
-                {filteredJobs.map((job, i) => (
-                  <div
-                    key={job.id}
-                    className="group relative p-5 lg:p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 hover:shadow-card transition-all duration-300"
-                    style={{ animationDelay: `${i * 0.05}s` }}
-                  >
-                    {job.hot && (
-                      <div className="absolute top-4 right-14 flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-semibold">
-                        <TrendingUp className="w-3 h-3" />
-                        Hot
-                      </div>
-                    )}
+                {filteredJobs.map((job, i) => {
+                  const applied = appliedJobs.has(job.id)
+                  return (
+                    <div
+                      key={job.id}
+                      className="group relative p-5 lg:p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 hover:shadow-card transition-all duration-300"
+                      style={{ animationDelay: `${i * 0.05}s` }}
+                    >
+                      {job.hot && (
+                        <div className="absolute top-4 right-14 flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-semibold">
+                          <TrendingUp className="w-3 h-3" />
+                          Hot
+                        </div>
+                      )}
 
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
-                        <img
-                          src={job.logo}
-                          alt={job.company}
-                          className="w-9 h-9 object-contain"
-                        />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <h3 className="text-base font-semibold text-card-foreground group-hover:text-brand-gold transition-colors">
-                              {job.title}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">{job.company}</span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => void toggleSave(job.id)}
-                            disabled={togglingId === job.id}
-                            className="flex-shrink-0 p-2 rounded-lg hover:bg-muted/60 transition-colors disabled:opacity-60"
-                          >
-                            {togglingId === job.id ? (
-                              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                            ) : (
-                              <Heart className={`w-5 h-5 transition-colors ${
-                                savedJobs.has(job.id)
-                                  ? 'fill-red-500 text-red-500'
-                                  : 'text-muted-foreground hover:text-foreground'
-                              }`} />
-                            )}
-                          </button>
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
+                          <img
+                            src={job.logo}
+                            alt={job.company}
+                            className="w-9 h-9 object-contain"
+                          />
                         </div>
 
-                        <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                          {job.description}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {job.requirements.map(req => (
-                            <span
-                              key={req}
-                              className="px-2.5 py-1 rounded-md bg-muted text-[11px] text-muted-foreground border border-border"
-                            >
-                              {req}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <MapPin className="w-3.5 h-3.5 text-brand-teal" />
-                            {job.location}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <DollarSign className="w-3.5 h-3.5 text-brand-gold" />
-                            {job.salary}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                            {job.type}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Posted {job.posted}
-                          </div>
-                        </div>
-
-                        {/* AI Match */}
-                        <div className="flex items-center justify-between mt-4">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-                            <span className="text-[11px] text-muted-foreground">AI Match Score:</span>
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-20 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-brand-teal to-brand-gold"
-                                  style={{ width: `${job.aiMatch}%` }}
-                                />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-base font-semibold text-card-foreground group-hover:text-brand-gold transition-colors">
+                                {job.title}
+                              </h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">{job.company}</span>
                               </div>
-                              <span className="text-[11px] font-semibold text-brand-gold">{job.aiMatch}%</span>
+                            </div>
+                            <button
+                              onClick={() => void toggleSave(job.id)}
+                              disabled={togglingId === job.id}
+                              className="flex-shrink-0 p-2 rounded-lg hover:bg-muted/60 transition-colors disabled:opacity-60"
+                            >
+                              {togglingId === job.id ? (
+                                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                              ) : (
+                                <Heart className={`w-5 h-5 transition-colors ${
+                                  savedJobs.has(job.id)
+                                    ? 'fill-red-500 text-red-500'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                }`} />
+                              )}
+                            </button>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                            {job.description}
+                          </p>
+
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {job.requirements.map(req => (
+                              <span
+                                key={req}
+                                className="px-2.5 py-1 rounded-md bg-muted text-[11px] text-muted-foreground border border-border"
+                              >
+                                {req}
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <MapPin className="w-3.5 h-3.5 text-brand-teal" />
+                              {job.location}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <DollarSign className="w-3.5 h-3.5 text-brand-gold" />
+                              {job.salary}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                              {job.type}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Posted {job.posted}
                             </div>
                           </div>
-                          <button className="px-4 py-2 bg-brand-gold/10 text-brand-gold rounded-lg text-xs font-medium hover:bg-brand-gold/20 transition-all">
-                            View Details
-                          </button>
+
+                          {/* AI Match */}
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
+                              <span className="text-[11px] text-muted-foreground">AI Match Score:</span>
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-20 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-gradient-to-r from-brand-teal to-brand-gold"
+                                    style={{ width: `${job.aiMatch}%` }}
+                                  />
+                                </div>
+                                <span className="text-[11px] font-semibold text-brand-gold">{job.aiMatch}%</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {applied && (
+                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-teal/10 text-brand-teal text-[11px] font-medium">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Applied
+                                </span>
+                              )}
+                              <button
+                                onClick={() => openJobDetails(job)}
+                                className="px-4 py-2 bg-brand-gold/10 text-brand-gold rounded-lg text-xs font-medium hover:bg-brand-gold/20 transition-all"
+                              >
+                                View Details
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               {/* Empty State */}
@@ -514,6 +548,17 @@ export default function JobsMarketplace() {
           </div>
         </div>
       </section>
+
+      {/* ── Job Detail + Apply Modal ───────────────────────────── */}
+      <JobDetailModal
+        job={selectedJob}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        userId={user?.id}
+        isApplicant={isApplicant}
+        alreadyApplied={selectedJob ? appliedJobs.has(selectedJob.id) : false}
+        onApplySuccess={handleApplySuccess}
+      />
     </div>
   )
 }

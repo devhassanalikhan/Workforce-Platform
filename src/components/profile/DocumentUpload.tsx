@@ -1,3 +1,5 @@
+// src/components/profile/DocumentUpload.tsx
+
 import { useEffect, useState } from 'react'
 import { UploadCloud, FileText } from 'lucide-react'
 import { toast } from 'sonner'

@@ -1,3 +1,5 @@
+// src/contexts/AuthContext.tsx
+
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, type UserMetadata } from '@/lib/supabase'

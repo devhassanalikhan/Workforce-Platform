@@ -143,9 +143,23 @@ export async function updateCompany(
 export async function applyToJob(
   payload: PlacementPayload
 ): Promise<MutationResult<{ id: string }>> {
+  // Fetch company_id from jobs table before inserting placement
+  const { data: jobData, error: jobError } = await supabase
+    .from('jobs')
+    .select('company_id')
+    .eq('id', payload.job_id)
+    .single()
+
+  if (jobError || !jobData) {
+    return { data: null, error: jobError?.message ?? 'Job not found' }
+  }
+
   const { data, error } = await supabase
     .from('placements')
-    .insert(payload)
+    .insert({
+      ...payload,
+      company_id: jobData.company_id
+    })
     .select('id')
     .single()
   return { data: data as { id: string } | null, error: error?.message ?? null }

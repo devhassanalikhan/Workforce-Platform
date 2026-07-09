@@ -4,6 +4,13 @@ export interface Job {
   company: string
   logo: string
   location: string
+  destinationCountry?: string | null
+  destinationCity?: string | null
+  visaStatus?: string | null
+  contractDuration?: string | null
+  oepLicenseNo?: string | null
+  benefits?: string[]
+  salaryFrequency?: string | null
   salary: string
   type: string
   category: string

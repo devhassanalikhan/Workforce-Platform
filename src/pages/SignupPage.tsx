@@ -1,5 +1,7 @@
+// src/pages/SignupPage.tsx
+
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Globe, Lock, Eye, EyeOff, AlertCircle, User, Building2, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -9,8 +11,15 @@ type Step = 'choice' | 'applicant' | 'employer' | 'verify'
 export default function SignupPage() {
   const { user, signUp, getHomeForRole } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-  const [step, setStep] = useState<Step>('choice')
+  // Support ?as=employer / ?as=applicant to jump straight into the right
+  // form (used by "Post a Job Now" on the public marketing page) instead of
+  // always landing on the choice screen.
+  const preselect = searchParams.get('as')
+  const initialStep: Step = preselect === 'employer' || preselect === 'applicant' ? preselect : 'choice'
+
+  const [step, setStep] = useState<Step>(initialStep)
   const [fullName, setFullName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')

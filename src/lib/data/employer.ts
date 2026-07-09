@@ -9,8 +9,15 @@ export interface CompanyJob {
   id: string
   title: string
   location: string
+  destination_country: string | null
+  destination_city: string | null
+  visa_status: string | null
+  contract_duration: string | null
+  oep_license_no: string | null
+  benefits: string[]
   salary_min: number | null
   salary_max: number | null
+  salary_frequency: string
   currency: string
   employment_type: string
   category: string
@@ -24,7 +31,7 @@ export interface CompanyJob {
 export async function getCompanyJobs(companyId: string): Promise<CompanyJob[]> {
   const { data, error } = await supabase
     .from('jobs')
-    .select('id, title, location, salary_min, salary_max, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at')
+    .select('id, title, location, destination_country, destination_city, visa_status, contract_duration, oep_license_no, benefits, salary_min, salary_max, salary_frequency, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at')
     .eq('company_id', companyId)
     .order('posted_at', { ascending: false })
 

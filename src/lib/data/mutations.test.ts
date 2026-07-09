@@ -50,8 +50,15 @@ describe('mutations data-layer helpers', () => {
     const result = await createJob({
       title: 'Engineer',
       location: 'Remote',
+      destination_country: 'United Arab Emirates',
+      destination_city: 'Dubai',
+      visa_status: 'Fully Sponsored',
+      contract_duration: '1 Year',
+      oep_license_no: null,
+      benefits: ['Free Accommodation'],
       salary_min: 1000,
       salary_max: 2000,
+      salary_frequency: 'monthly',
       currency: 'USD',
       employment_type: 'full-time',
       category: 'Engineering',
@@ -62,7 +69,13 @@ describe('mutations data-layer helpers', () => {
       company_id: 'company-1',
     })
 
-    expect(chain.insert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Engineer', company_id: 'company-1' }))
+    expect(chain.insert).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Engineer',
+      company_id: 'company-1',
+      destination_country: 'United Arab Emirates',
+      benefits: ['Free Accommodation'],
+      salary_frequency: 'monthly',
+    }))
     expect(result).toEqual({ data: { id: 'job-1' }, error: null })
   })
 

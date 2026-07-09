@@ -1,3 +1,6 @@
+// src/pages/EmployerEnterprise.tsx
+
+import { useState } from 'react'
 import {
   Building2,
   ShieldCheck,
@@ -19,8 +22,10 @@ import {
   Activity,
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { useScrollAnimation, useStaggerAnimation } from '@/hooks/useScrollAnimation'
 import { useAuth } from '@/contexts/AuthContext'
+import RequestDemoModal from '@/components/employers/RequestDemoModal'
 
 const features = [
   {
@@ -168,6 +173,8 @@ const JO_CANDIDATE = {
 export default function EmployerEnterprise() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [demoModalOpen, setDemoModalOpen] = useState(false)
+
   const canAccessPortal = user !== null && (
     user.role === 'employer' || user.role === 'admin' || user.role === 'super_admin'
   )
@@ -178,7 +185,30 @@ export default function EmployerEnterprise() {
   const { ref: pricingRef, isVisible: pricingVisible } = useScrollAnimation()
 
   function handlePostJob() {
-    navigate(canAccessPortal ? '/employer-portal' : '/signup')
+    // Employer/admin — go straight to their real portal.
+    if (canAccessPortal) {
+      navigate(user?.role === 'employer' ? '/employer-portal' : '/admin/employers')
+      return
+    }
+
+    // Not logged in — safe to send straight to signup, pre-selecting the
+    // employer path so they don't have to pick from the choice screen again.
+    if (!user) {
+      navigate('/signup?as=employer')
+      return
+    }
+
+    // Logged in as some other role (applicant) — do NOT push them to
+    // /signup. SignupPage redirects any already-authenticated user straight
+    // back to their own dashboard, which is exactly the confusing bounce
+    // this was producing. Tell them clearly instead.
+    toast.error(
+      'You\'re signed in as an applicant. Sign out first, then create a separate employer account to post jobs.'
+    )
+  }
+
+  function handleRequestDemo() {
+    setDemoModalOpen(true)
   }
 
   return (
@@ -218,7 +248,10 @@ export default function EmployerEnterprise() {
                   <Sparkles className="w-4 h-4" />
                   Post a Job Now
                 </button>
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-all">
+                <button
+                  onClick={handleRequestDemo}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-muted/50 transition-all"
+                >
                   <Briefcase className="w-4 h-4" />
                   Request Demo
                 </button>
@@ -484,7 +517,7 @@ export default function EmployerEnterprise() {
                 </ul>
 
                 <button
-                  onClick={handlePostJob}
+                  onClick={plan.cta === 'Contact Sales' ? handleRequestDemo : handlePostJob}
                   className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
                     plan.popular
                       ? 'bg-brand-gold text-navy-950 hover:bg-brand-gold-light'
@@ -521,7 +554,10 @@ export default function EmployerEnterprise() {
                   <Sparkles className="w-4 h-4" />
                   {canAccessPortal ? 'Go to Your Portal' : 'Post Your First Job'}
                 </button>
-                <button className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all">
+                <button
+                  onClick={handleRequestDemo}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/15 text-slate-200 rounded-xl text-sm font-medium hover:bg-white/5 transition-all"
+                >
                   <ChevronRight className="w-4 h-4" />
                   Talk to Sales
                 </button>
@@ -530,6 +566,8 @@ export default function EmployerEnterprise() {
           </div>
         </div>
       </section>
+
+      <RequestDemoModal open={demoModalOpen} onOpenChange={setDemoModalOpen} />
     </div>
   )
 }

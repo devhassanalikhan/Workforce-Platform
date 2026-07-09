@@ -7,8 +7,15 @@ import { supabase } from '@/lib/supabase'
 export interface JobPayload {
   title: string
   location: string
+  destination_country: string
+  destination_city: string
+  visa_status: string
+  contract_duration: string
+  oep_license_no: string | null
+  benefits: string[]
   salary_min: number | null
   salary_max: number | null
+  salary_frequency: string
   currency: string
   employment_type: string
   category: string
@@ -67,6 +74,13 @@ export interface GrievancePayload {
 export interface GrievanceUpdate {
   status: 'open' | 'resolved'
   resolution_note?: string
+}
+
+export interface DemoRequestPayload {
+  name: string
+  email: string
+  company: string
+  message?: string
 }
 
 export type MutationResult<T = void> = { data: T | null; error: string | null }
@@ -143,7 +157,6 @@ export async function updateCompany(
 export async function applyToJob(
   payload: PlacementPayload
 ): Promise<MutationResult<{ id: string }>> {
-  // Fetch company_id from jobs table before inserting placement
   const { data: jobData, error: jobError } = await supabase
     .from('jobs')
     .select('company_id')
@@ -158,7 +171,7 @@ export async function applyToJob(
     .from('placements')
     .insert({
       ...payload,
-      company_id: jobData.company_id
+      company_id: jobData.company_id,
     })
     .select('id')
     .single()
@@ -301,6 +314,20 @@ export async function unsaveJob(userId: string, jobId: string): Promise<Mutation
     .eq('user_id', userId)
     .eq('job_id', jobId)
   return { data: null, error: error?.message ?? null }
+}
+
+// ── Demo Requests ("Request Demo" / "Talk to Sales" on the public employer
+//    marketing page — replaces a WhatsApp link with an in-app lead form) ───────
+
+export async function submitDemoRequest(
+  payload: DemoRequestPayload
+): Promise<MutationResult<{ id: string }>> {
+  const { data, error } = await supabase
+    .from('demo_requests')
+    .insert({ ...payload, created_at: new Date().toISOString() })
+    .select('id')
+    .single()
+  return { data: data as { id: string } | null, error: error?.message ?? null }
 }
 
 // ── Blog Articles ──────────────────────────────────────────────────────────────

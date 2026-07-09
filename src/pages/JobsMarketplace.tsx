@@ -18,6 +18,9 @@ import {
   Globe,
   Loader2,
   CheckCircle2,
+  Plane,
+  ShieldCheck,
+  CalendarDays,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
@@ -57,6 +60,11 @@ const experienceLevels = ['All Levels', 'Entry Level', 'Mid Level', 'Senior Leve
 const contractTypes = ['All Types', 'Full-time', 'Contract', 'Temporary', 'Seasonal']
 const salaryRanges = ['All Ranges', '$1,000 - $2,000', '$2,000 - $3,500', '$3,500 - $5,000', '$5,000+']
 const sortOptions = ['Relevance', 'Salary: High to Low', 'Salary: Low to High', 'Newest', 'Most Applied']
+
+function destinationOf(job: Job) {
+  if (job.destinationCity && job.destinationCountry) return `${job.destinationCity}, ${job.destinationCountry}`
+  return job.destinationCountry ?? job.location
+}
 
 export default function JobsMarketplace() {
   const { user } = useAuth()
@@ -139,9 +147,13 @@ export default function JobsMarketplace() {
       !searchQuery ||
       job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.category.toLowerCase().includes(searchQuery.toLowerCase())
+      job.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      destinationOf(job).toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = selectedCategory === 'All Categories' || job.category === selectedCategory
-    const matchesLocation = selectedLocation === 'All Locations' || job.location.includes(selectedLocation)
+    const matchesLocation =
+      selectedLocation === 'All Locations' ||
+      job.location.includes(selectedLocation) ||
+      destinationOf(job).includes(selectedLocation)
     const matchesExp = selectedExp === 'All Levels' || job.experience === selectedExp
     const matchesType = selectedType === 'All Types' || job.type === selectedType
     return matchesSearch && matchesCategory && matchesLocation && matchesExp && matchesType
@@ -464,17 +476,48 @@ export default function JobsMarketplace() {
                             </button>
                           </div>
 
-                          <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                            {job.description}
+                          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                <Plane className="w-3 h-3 text-brand-teal" />
+                                Destination
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground">{destinationOf(job)}</div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                <ShieldCheck className="w-3 h-3 text-brand-teal" />
+                                Visa
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.visaStatus ?? 'To be confirmed'}</div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                <CalendarDays className="w-3 h-3 text-brand-gold" />
+                                Contract
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.contractDuration ?? job.type}</div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                                <DollarSign className="w-3 h-3 text-brand-gold" />
+                                Salary
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.salary}</div>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
+                            {job.description || 'No description provided for this listing.'}
                           </p>
 
                           <div className="flex flex-wrap gap-2 mt-3">
-                            {job.requirements.map(req => (
+                            {(job.benefits && job.benefits.length > 0 ? job.benefits : job.requirements.slice(0, 4)).map(item => (
                               <span
-                                key={req}
+                                key={item}
                                 className="px-2.5 py-1 rounded-md bg-muted text-[11px] text-muted-foreground border border-border"
                               >
-                                {req}
+                                {item}
                               </span>
                             ))}
                           </div>
@@ -482,7 +525,7 @@ export default function JobsMarketplace() {
                           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border">
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <MapPin className="w-3.5 h-3.5 text-brand-teal" />
-                              {job.location}
+                              {destinationOf(job)}
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <DollarSign className="w-3.5 h-3.5 text-brand-gold" />
@@ -490,7 +533,7 @@ export default function JobsMarketplace() {
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                              {job.type}
+                              {job.contractDuration ?? job.type}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               Posted {job.posted}

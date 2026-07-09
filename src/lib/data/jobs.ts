@@ -8,8 +8,15 @@ interface JobRow {
   id: string
   title: string
   location: string
+  destination_country: string | null
+  destination_city: string | null
+  visa_status: string | null
+  contract_duration: string | null
+  oep_license_no: string | null
+  benefits: string[] | null
   salary_min: number | null
   salary_max: number | null
+  salary_frequency: string | null
   currency: string
   employment_type: string
   category: string
@@ -21,11 +28,17 @@ interface JobRow {
   companies: { name: string; logo_url: string | null } | null
 }
 
-function formatSalary(min: number | null, max: number | null, currency: string): string {
+function formatSalary(
+  min: number | null,
+  max: number | null,
+  currency: string,
+  frequency: string | null
+): string {
+  const suffix = frequency === 'yearly' ? '/yr' : '/mo'
   if (min == null && max == null) return 'Salary not disclosed'
-  if (min != null && max != null) return `${currency} ${min.toLocaleString()} - ${max.toLocaleString()}/mo`
+  if (min != null && max != null) return `${currency} ${min.toLocaleString()} - ${max.toLocaleString()}${suffix}`
   const value = min ?? max
-  return `${currency} ${value!.toLocaleString()}/mo`
+  return `${currency} ${value!.toLocaleString()}${suffix}`
 }
 
 function formatPosted(postedAt: string): string {
@@ -42,13 +55,20 @@ function mapRow(row: JobRow): Job {
     company: row.companies?.name ?? 'Unknown Company',
     logo: row.companies?.logo_url ?? '/images/logo-placeholder.png',
     location: row.location,
-    salary: formatSalary(row.salary_min, row.salary_max, row.currency),
+    destinationCountry: row.destination_country,
+    destinationCity: row.destination_city,
+    visaStatus: row.visa_status,
+    contractDuration: row.contract_duration,
+    oepLicenseNo: row.oep_license_no,
+    benefits: row.benefits ?? [],
+    salaryFrequency: row.salary_frequency ?? 'monthly',
+    salary: formatSalary(row.salary_min, row.salary_max, row.currency, row.salary_frequency),
     type: row.employment_type,
     category: row.category,
     experience: row.experience_level,
     posted: formatPosted(row.posted_at),
     description: row.description ?? '',
-    requirements: row.requirements,
+    requirements: row.requirements ?? [],
     // AI match scoring is part of the deferred AI Assistant slice — real jobs
     // show 0 until that's wired up.
     aiMatch: 0,
@@ -88,7 +108,7 @@ export async function getJobs(): Promise<Job[]> {
   const { data, error } = await supabase
     .from('jobs')
     .select(
-      'id, title, location, salary_min, salary_max, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at, companies(name, logo_url)'
+      'id, title, location, destination_country, destination_city, visa_status, contract_duration, oep_license_no, benefits, salary_min, salary_max, salary_frequency, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at, companies(name, logo_url)'
     )
 
   if (error || !data || data.length === 0) {

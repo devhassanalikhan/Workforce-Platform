@@ -1,3 +1,5 @@
+// src/components/Navbar.tsx
+
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import {
@@ -37,12 +39,13 @@ const BASE_MORE_LINKS = [
   { label: 'Blog',           href: '/blog',         icon: BookOpen    },
 ]
 
+// Admin/employer no longer get a "Employer Portal"/"Employers" entry here —
+// admin now has a dedicated main-nav link (see visibleNavLinks below)
+// pointing at the oversight view, not the More dropdown pointing at the
+// employer's own single-company page.
 function getMoreLinks(role: string | undefined) {
-  if (role === 'employer') {
+  if (role === 'employer' || role === 'admin' || role === 'super_admin') {
     return BASE_MORE_LINKS
-  }
-  if (role === 'admin' || role === 'super_admin') {
-    return [...BASE_MORE_LINKS, { label: 'Employer Portal', href: '/employer-portal', icon: Building2 }]
   }
   return [...BASE_MORE_LINKS, { label: 'Employers', href: '/employers', icon: Building2 }]
 }
@@ -91,7 +94,8 @@ export default function Navbar() {
   const activeSteps  = getActiveSteps(location.pathname)
 
   // Role-aware nav: Talent/Placement/Wasl only for admin+; Dashboard injected for
-  // applicants; My Portal injected for employers.
+  // applicants; My Portal injected for employers; Employers (admin oversight)
+  // injected for admin+.
   const visibleNavLinks = (() => {
     const filtered = navLinks.filter(link => {
       if (link.href === '/talent' || link.href === '/placement' || link.href === '/wasl') {
@@ -109,6 +113,12 @@ export default function Navbar() {
       return [
         ...filtered,
         { label: 'My Portal', href: '/employer-portal', icon: Building2 },
+      ]
+    }
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
+      return [
+        ...filtered,
+        { label: 'Employers', href: '/admin/employers', icon: Building2 },
       ]
     }
     return filtered

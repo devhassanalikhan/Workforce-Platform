@@ -1,3 +1,5 @@
+// src/App.tsx
+
 import { Routes, Route } from 'react-router'
 import { Suspense, lazy } from 'react'
 import { Toaster } from 'sonner'
@@ -19,12 +21,13 @@ const LoginPage        = lazy(() => import('./pages/LoginPage'))
 const SignupPage       = lazy(() => import('./pages/SignupPage'))
 
 // ── Auth-gated pages ───────────────────────────────────────────────────────────
-const ApplicantDashboard = lazy(() => import('./pages/Dashboard'))
-const TalentPool         = lazy(() => import('./pages/TalentPool'))
-const EmployerEnterprise = lazy(() => import('./pages/EmployerEnterprise'))
-const EmployerPortal     = lazy(() => import('./pages/EmployerPortal'))
-const PlacementDashboard = lazy(() => import('./pages/PlacementDashboard'))
-const WaslDashboard      = lazy(() => import('./pages/WaslDashboard'))
+const ApplicantDashboard    = lazy(() => import('./pages/Dashboard'))
+const TalentPool            = lazy(() => import('./pages/TalentPool'))
+const EmployerEnterprise    = lazy(() => import('./pages/EmployerEnterprise'))
+const EmployerPortal        = lazy(() => import('./pages/EmployerPortal'))
+const PlacementDashboard    = lazy(() => import('./pages/PlacementDashboard'))
+const WaslDashboard         = lazy(() => import('./pages/WaslDashboard'))
+const AdminEmployersOverview = lazy(() => import('./pages/admin/AdminEmployersOverview'))
 
 function App() {
   return (
@@ -60,9 +63,23 @@ function App() {
                   </ProtectedRoute>
                 } />
 
-                {/* ── employer+ ──────────────────────────────────────────── */}
+                {/* Admin-only oversight view — NOT the same page an employer
+                    uses. See exactRole note on /employer-portal below for why
+                    admins don't just fall through into that page instead. */}
+                <Route path="/admin/employers" element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminEmployersOverview />
+                  </ProtectedRoute>
+                } />
+
+                {/* ── employer (exact role) ──────────────────────────────── */}
+                {/* exactRole=true: without this, hasRole('admin','employer')
+                    is true (admin outranks employer in the hierarchy), so an
+                    admin could land on the employer's own "add your company"
+                    setup screen instead of their dedicated oversight page
+                    above. This route is deliberately NOT elevation-accessible. */}
                 <Route path="/employer-portal" element={
-                  <ProtectedRoute requiredRole="employer">
+                  <ProtectedRoute requiredRole="employer" exactRole>
                     <EmployerPortal />
                   </ProtectedRoute>
                 } />

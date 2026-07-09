@@ -1,3 +1,5 @@
+// src/lib/rbac.ts
+
 export const APP_ROLES = ['applicant', 'employer', 'admin', 'super_admin'] as const
 export type AppRole = (typeof APP_ROLES)[number]
 
@@ -30,11 +32,12 @@ export function hasRole(userRole: AppRole, requiredRole: AppRole): boolean {
 
 /** Minimum role required to access each protected route. */
 export const ROUTE_MIN_ROLE: Record<string, AppRole> = {
-  '/dashboard':      'applicant',
-  '/employer-portal':'employer',
-  '/talent':         'admin',
-  '/placement':      'admin',
-  '/wasl':           'admin',
+  '/dashboard':       'applicant',
+  '/employer-portal': 'employer',
+  '/admin/employers': 'admin',
+  '/talent':          'admin',
+  '/placement':       'admin',
+  '/wasl':            'admin',
 }
 
 /** Default redirect target per role after successful login. */

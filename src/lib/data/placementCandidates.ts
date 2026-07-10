@@ -18,6 +18,7 @@ interface ComplianceItemRow {
   sublabel: string | null
   status: ChecklistStatus
   detail: string | null
+  gamca_approved: boolean
 }
 
 // Falls back to bundled demo candidates whenever there are no live Stage 5
@@ -43,7 +44,7 @@ export async function getPlacementCandidates(): Promise<PlacementCandidate[]> {
 
   const { data: checklistRows } = await supabase
     .from('compliance_checklist_items')
-    .select('placement_id, item_key, label, sublabel, status, detail')
+    .select('placement_id, item_key, label, sublabel, status, detail, gamca_approved')
     .in('placement_id', placementIds)
 
   const checklistByPlacement = new Map<string, ComplianceItemRow[]>()
@@ -69,6 +70,7 @@ export async function getPlacementCandidates(): Promise<PlacementCandidate[]> {
         sublabel: item.sublabel ?? '',
         status: item.status,
         detail: item.detail ?? undefined,
+        gamcaApproved: item.gamca_approved,
       })),
     }
   })

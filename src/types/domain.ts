@@ -98,12 +98,31 @@ export interface DeployedWorker {
 
 export type ChecklistStatus = 'complete' | 'pending' | 'flagged'
 
+// All recognised compliance checklist item keys.  The DB column is free-text
+// (TEXT), so this union is advisory — the icon maps in Dashboard.tsx and
+// PlacementDashboard.tsx fall back to a generic icon for unrecognised keys.
+export type ChecklistItemKey =
+  | 'docs'
+  | 'contract'
+  | 'medical'
+  | 'visa'
+  | 'language'
+  | 'fee'
+  | 'flight'
+  | 'employer'
+  // Pakistani overseas employment (BEOE / emigration clearance process)
+  | 'emigration_clearance'
+  | 'police_clearance'
+  | 'welfare_fund'
+
 export interface PlacementChecklistItem {
   key: string
   label: string
   sublabel: string
   status: ChecklistStatus
   detail?: string
+  /** GAMCA-network approval — only meaningful when key = 'medical'. */
+  gamcaApproved?: boolean
 }
 
 // One candidate on PlacementDashboard.tsx (Stage 5 — FF OES compliance

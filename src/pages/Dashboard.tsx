@@ -14,6 +14,9 @@ import {
   Activity,
   Loader2,
   UserPlus,
+  Stamp,
+  ShieldAlert,
+  HeartHandshake,
 } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useAuth } from '@/contexts/AuthContext'
@@ -32,6 +35,10 @@ const ITEM_ICON_MAP: Record<string, ElementType> = {
   fee:      CreditCard,
   flight:   Plane,
   employer: Building2,
+  // Pakistani overseas employment (BEOE / emigration clearance process)
+  emigration_clearance: Stamp,
+  police_clearance:     ShieldAlert,
+  welfare_fund:         HeartHandshake,
 }
 
 const STATUS_CONFIG: Record<ChecklistStatus, { icon: ElementType; classes: string; label: string }> = {
@@ -316,7 +323,12 @@ function ComplianceTab({ checklist, userId }: { checklist: DashboardChecklistIte
                   <ItemIcon className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">{item.label}</p>
+                  <p className="font-semibold text-foreground">
+                    {item.label}
+                    {item.itemKey === 'medical' && item.gamcaApproved && (
+                      <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-brand-teal/10 border border-brand-teal/25 px-2 py-0.5 text-[10px] font-semibold text-brand-teal uppercase tracking-wider">GAMCA ✓</span>
+                    )}
+                  </p>
                   {item.sublabel && <p className="text-sm text-muted-foreground mt-1">{item.sublabel}</p>}
                   {item.detail && <p className="text-sm text-muted-foreground mt-1">{item.detail}</p>}
                 </div>

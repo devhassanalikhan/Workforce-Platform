@@ -30,6 +30,8 @@ export interface DashboardChecklistItem {
   sublabel: string | null
   status: ChecklistStatus
   detail: string | null
+  /** GAMCA-network approval — only meaningful when itemKey = 'medical'. */
+  gamcaApproved: boolean
 }
 
 export interface DashboardData {
@@ -64,6 +66,7 @@ interface ChecklistRow {
   sublabel: string | null
   status: string
   detail: string | null
+  gamca_approved: boolean
 }
 
 export async function getDashboardData(userId: string): Promise<DashboardData> {
@@ -113,7 +116,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
 
   const { data: checklistData } = await supabase
     .from('compliance_checklist_items')
-    .select('id, item_key, label, sublabel, status, detail')
+    .select('id, item_key, label, sublabel, status, detail, gamca_approved')
     .eq('placement_id', row.id)
     .order('updated_at', { ascending: true })
 
@@ -125,6 +128,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       sublabel: item.sublabel,
       status: item.status as ChecklistStatus,
       detail: item.detail,
+      gamcaApproved: item.gamca_approved,
     })
   )
 

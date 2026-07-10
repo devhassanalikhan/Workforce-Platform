@@ -14,5 +14,8 @@ export const mockActiveJobOrder: ActiveJobOrder = {
     { label: 'Medical Clearance', status: 'complete' },
     { label: 'UAE Work Visa', status: 'complete' },
     { label: 'Flight & Logistics', status: 'pending' },
+    { label: 'Emigration Clearance (OEC)', status: 'complete' },
+    { label: 'Police Clearance Certificate', status: 'complete' },
+    { label: 'Welfare Fund Enrollment', status: 'pending' },
   ],
 }

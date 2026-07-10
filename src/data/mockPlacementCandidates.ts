@@ -12,12 +12,15 @@ export const mockPlacementCandidates: PlacementCandidate[] = [
     checklist: [
       { key: 'docs',     label: 'Identity Documents Verified',   sublabel: 'Passport, NID, Birth Certificate',        status: 'complete', detail: 'Verified by FF OES compliance team on 12 Jun 2026' },
       { key: 'contract', label: 'Employment Contract Signed',     sublabel: 'Bilingual EN/AR — MOHRE compliant',       status: 'complete', detail: 'Contract countersigned by Al-Rashid HR on 10 Jun 2026' },
-      { key: 'medical',  label: 'Medical Fitness Clearance',      sublabel: 'GCC approved clinic — Dhaka',             status: 'complete', detail: 'Fitness certificate valid through Dec 2026' },
+      { key: 'medical',  label: 'Medical Fitness Clearance',      sublabel: 'GCC approved clinic — Dhaka',             status: 'complete', detail: 'Fitness certificate valid through Dec 2026', gamcaApproved: true },
       { key: 'visa',     label: 'UAE Work Visa Issued',           sublabel: 'Residence visa + work permit',            status: 'complete', detail: 'Visa stamped 15 Jun 2026 · Entry permit #UAE-88421' },
       { key: 'language', label: 'Language Proficiency Confirmed', sublabel: 'CEFR B1 English · Basic Arabic',          status: 'complete', detail: 'CEFR result logged on Workfly Skills record' },
       { key: 'fee',      label: 'Zero Recruitment Fee Confirmed', sublabel: 'Candidate fee debt: AED 0.00',            status: 'complete', detail: 'Ethical compliance certificate issued' },
       { key: 'flight',   label: 'Flight & Logistics Arranged',    sublabel: 'DAC → DXB · 22 Jun 2026',                status: 'pending',  detail: 'Ticket confirmation awaited from employer' },
       { key: 'employer', label: 'Employer Onboarding Pack Sent',  sublabel: 'Accommodation details + site induction', status: 'pending',  detail: 'Awaiting employer HR acknowledgment' },
+      { key: 'emigration_clearance', label: 'Emigration Clearance (OEC)',       sublabel: 'Protector of Emigrants / BEOE stamp',           status: 'complete', detail: 'OEC issued 14 Jun 2026 · Stamp #OEC-PK-20260614-8821' },
+      { key: 'police_clearance',     label: 'Police Clearance Certificate',     sublabel: 'Punjab Police Character Certificate',           status: 'complete', detail: 'PCC issued 8 Jun 2026 · Valid 6 months' },
+      { key: 'welfare_fund',         label: 'Welfare Fund Enrollment',          sublabel: 'Overseas Workers Welfare Fund (OWWF)',           status: 'pending',  detail: 'OWWF deposit slip submitted — awaiting confirmation receipt' },
     ],
   },
   {
@@ -31,12 +34,15 @@ export const mockPlacementCandidates: PlacementCandidate[] = [
     checklist: [
       { key: 'docs',     label: 'Identity Documents Verified',   sublabel: 'Passport, NID, Nursing License',       status: 'complete', detail: 'Verified 5 Jun 2026' },
       { key: 'contract', label: 'Employment Contract Signed',     sublabel: 'Bilingual EN/AR — MOH KSA compliant',  status: 'complete', detail: 'Signed 7 Jun 2026' },
-      { key: 'medical',  label: 'Medical Fitness Clearance',      sublabel: 'DataFlow credential verification done', status: 'complete', detail: 'DataFlow ref #DF-99021' },
+      { key: 'medical',  label: 'Medical Fitness Clearance',      sublabel: 'DataFlow credential verification done', status: 'complete', detail: 'DataFlow ref #DF-99021', gamcaApproved: true },
       { key: 'visa',     label: 'Saudi Work Visa Issued',         sublabel: 'Residence + nursing practice permit',  status: 'complete', detail: 'Visa: KSA-77310 · 9 Jun 2026' },
       { key: 'language', label: 'Language Proficiency Confirmed', sublabel: 'IELTS 7.0 · CEFR C1',                  status: 'complete', detail: 'Score on file' },
       { key: 'fee',      label: 'Zero Recruitment Fee Confirmed', sublabel: 'Candidate fee debt: SAR 0.00',         status: 'complete', detail: 'Ethical certificate issued' },
       { key: 'flight',   label: 'Flight & Logistics Arranged',    sublabel: 'MNL → RUH · 20 Jun 2026',              status: 'complete', detail: 'Confirmed — Philippine Airlines PR 655' },
       { key: 'employer', label: 'Employer Onboarding Pack Sent',  sublabel: 'Hospital orientation confirmed',       status: 'pending',  detail: 'Final briefing call scheduled 19 Jun 2026' },
+      { key: 'emigration_clearance', label: 'Emigration Clearance (OEC)',       sublabel: 'POEA / OFW exit clearance',                     status: 'complete', detail: 'OEC issued 11 Jun 2026' },
+      { key: 'police_clearance',     label: 'Police Clearance Certificate',     sublabel: 'NBI Clearance — Republic of Philippines',       status: 'complete', detail: 'NBI ref #NBI-2026-55012 · Valid 1 year' },
+      { key: 'welfare_fund',         label: 'Welfare Fund Enrollment',          sublabel: 'OWWA membership active',                        status: 'complete', detail: 'OWWA ID #OW-2026-10442 · Paid through 2027' },
     ],
   },
   {
@@ -56,6 +62,9 @@ export const mockPlacementCandidates: PlacementCandidate[] = [
       { key: 'fee',      label: 'Zero Recruitment Fee Confirmed', sublabel: 'Candidate fee debt: QAR 0.00',        status: 'complete', detail: 'Ethical certificate issued' },
       { key: 'flight',   label: 'Flight & Logistics Arranged',    sublabel: 'CAI → DOH · TBD',                    status: 'flagged',  detail: 'On hold — blocked by visa' },
       { key: 'employer', label: 'Employer Onboarding Pack Sent',  sublabel: 'Site safety induction pending',       status: 'flagged',  detail: 'Cannot proceed until visa cleared' },
+      { key: 'emigration_clearance', label: 'Emigration Clearance (OEC)',       sublabel: 'Protector of Emigrants / BEOE stamp',           status: 'flagged',  detail: 'Blocked — medical clearance required before BEOE submission' },
+      { key: 'police_clearance',     label: 'Police Clearance Certificate',     sublabel: 'Sindh Police Character Certificate',            status: 'complete', detail: 'PCC issued 5 Jun 2026 · Valid 6 months' },
+      { key: 'welfare_fund',         label: 'Welfare Fund Enrollment',          sublabel: 'Overseas Workers Welfare Fund (OWWF)',           status: 'pending',  detail: 'Enrollment form submitted — receipt pending' },
     ],
   },
 ]

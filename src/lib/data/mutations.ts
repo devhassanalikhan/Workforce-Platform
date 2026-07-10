@@ -55,6 +55,7 @@ export interface PlacementPayload {
 export interface ChecklistItemUpdate {
   status: 'complete' | 'pending' | 'flagged'
   detail?: string
+  gamca_approved?: boolean
 }
 
 export interface DeploymentUpdate {

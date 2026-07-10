@@ -16,6 +16,9 @@ import {
   Languages,
   Plane,
   Building2,
+  Stamp,
+  ShieldAlert,
+  HeartHandshake,
 } from 'lucide-react'
 import { getPlacementCandidates } from '@/lib/data/placementCandidates'
 import type { PlacementCandidate, PlacementChecklistItem, ChecklistStatus } from '@/types/domain'
@@ -33,6 +36,10 @@ const CHECKLIST_ICONS: Record<string, React.ElementType> = {
   fee: CreditCard,
   flight: Plane,
   employer: Building2,
+  // Pakistani overseas employment (BEOE / emigration clearance process)
+  emigration_clearance: Stamp,
+  police_clearance:     ShieldAlert,
+  welfare_fund:         HeartHandshake,
 }
 
 const statusConfig: Record<ChecklistStatus, { icon: React.ElementType; classes: string; label: string }> = {
@@ -234,7 +241,7 @@ export default function PlacementDashboard() {
             {/* Compliance Checklist */}
             <div className="space-y-3">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
-                8-Point Compliance Checklist · FF OES Protocol
+                {candidate.checklist.length}-Point Compliance Checklist · FF OES Protocol
               </h3>
               {candidate.checklist.map((item) => {
                 const cfg         = statusConfig[item.status]
@@ -264,7 +271,12 @@ export default function PlacementDashboard() {
                       </div>
                       {/* Labels */}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-foreground">{item.label}</div>
+                        <div className="text-sm font-semibold text-foreground">
+                          {item.label}
+                          {item.key === 'medical' && item.gamcaApproved && (
+                            <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-brand-teal/10 border border-brand-teal/25 px-2 py-0.5 text-[10px] font-semibold text-brand-teal uppercase tracking-wider">GAMCA ✓</span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-muted-foreground">{item.sublabel}</div>
                       </div>
                       {/* Status badge + chevron */}

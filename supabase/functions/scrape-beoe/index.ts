@@ -75,11 +75,23 @@ function parseMarkdownJobs(md: string): ExtractedJob[] {
   return jobs.slice(0, 100) // cap to avoid runaway parsing
 }
 
+// ── CORS ─────────────────────────────────────────────────────────────────────
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders })
+  }
+
   if (req.method !== 'POST' && req.method !== 'GET') {
-    return new Response('Method not allowed', { status: 405 })
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
   }
 
   const supabaseUrl     = Deno.env.get('SUPABASE_URL')!
@@ -322,6 +334,6 @@ function buildDescription(raw: ExtractedJob): string {
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   })
 }

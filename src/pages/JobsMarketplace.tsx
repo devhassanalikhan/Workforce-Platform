@@ -8,7 +8,6 @@ import {
   DollarSign,
   Clock,
   Star,
-  Sparkles,
   Heart,
   Building2,
   Briefcase,
@@ -434,197 +433,115 @@ export default function JobsMarketplace() {
               </div>
 
               {/* Job Cards */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredJobs.map((job, i) => {
                   const applied = appliedJobs.has(job.id)
                   return (
                     <div
                       key={job.id}
-                      className="group relative p-5 lg:p-6 rounded-2xl bg-card border border-border hover:border-brand-gold/20 hover:shadow-card transition-all duration-300"
-                      style={{ animationDelay: `${i * 0.05}s` }}
+                      className="group relative flex items-center gap-4 px-5 py-4 rounded-2xl bg-card border border-border hover:border-brand-teal/40 hover:shadow-lg transition-all duration-300"
+                      style={{ animationDelay: `${i * 0.04}s` }}
                     >
+                      {/* Hot badge */}
                       {job.hot && (
-                        <div className="absolute top-4 right-14 flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-semibold">
-                          <TrendingUp className="w-3 h-3" />
+                        <div className="absolute top-3 right-36 flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 text-[9px] font-bold border border-red-500/20">
+                          <TrendingUp className="w-2.5 h-2.5" />
                           Hot
                         </div>
                       )}
 
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
-                          <img
-                            src={job.logo}
-                            alt={job.company}
-                            className="w-9 h-9 object-contain"
-                          />
+                      {/* Logo */}
+                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border border-border shadow-sm">
+                        <img
+                          src={job.logo}
+                          alt={job.company}
+                          className="w-9 h-9 object-contain"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Title */}
+                        <h3 className="text-sm font-bold text-brand-teal group-hover:text-brand-gold transition-colors leading-tight truncate">
+                          {job.title}
+                        </h3>
+
+                        {/* Row 1: Company · Location · Job Nature */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
+                          <span className="flex items-center gap-1 text-[12px] text-muted-foreground">
+                            <Building2 className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                            {job.company}
+                          </span>
+                          <span className="flex items-center gap-1 text-[12px] text-muted-foreground">
+                            <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                            {destinationOf(job)}
+                          </span>
+                          <span className="flex items-center gap-1 text-[12px] text-muted-foreground">
+                            <Globe className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                            {job.jobNature || job.type}
+                          </span>
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h3 className="text-base font-semibold text-card-foreground group-hover:text-brand-gold transition-colors">
-                                {job.title}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">{job.company}</span>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => void toggleSave(job.id)}
-                              disabled={togglingId === job.id}
-                              className="flex-shrink-0 p-2 rounded-lg hover:bg-muted/60 transition-colors disabled:opacity-60"
-                            >
-                              {togglingId === job.id ? (
-                                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                              ) : (
-                                <Heart className={`w-5 h-5 transition-colors ${
-                                  savedJobs.has(job.id)
-                                    ? 'fill-red-500 text-red-500'
-                                    : 'text-muted-foreground hover:text-foreground'
-                                }`} />
-                              )}
-                            </button>
-                          </div>
+                        {/* Row 2: Experience · Age Limit · Field of Work · Available Till */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
+                            <Star className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                            Experience: <span className="font-medium text-foreground/80">{job.experience}</span>
+                          </span>
+                          {job.ageLimit && (
+                            <span className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
+                              <Users className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                              Age Limit: <span className="font-medium text-foreground/80">{job.ageLimit}</span>
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
+                            <Briefcase className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                            Field: <span className="font-medium text-foreground/80">{job.fieldOfWork || job.category}</span>
+                          </span>
+                          {job.availableTill && (
+                            <span className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
+                              <CalendarDays className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                              Available Till: <span className="font-medium text-foreground/80">{job.availableTill}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4">
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <Building2 className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                                Project
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.project || job.company}>
-                                {job.project || job.company}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                                Location
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={destinationOf(job)}>
-                                {destinationOf(job)}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <Clock className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                                Job Nature
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.jobNature || job.type}>
-                                {job.jobNature || job.type}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <Star className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                                Experience
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.experience}>
-                                {job.experience}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <Users className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                                Age Limit
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.ageLimit || 'N/A'}>
-                                {job.ageLimit || 'N/A'}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <Briefcase className="w-3 h-3 text-brand-teal flex-shrink-0" />
-                                Field of Work
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.fieldOfWork || job.category}>
-                                {job.fieldOfWork || job.category}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <CalendarDays className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                                Available Till
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.availableTill || 'N/A'}>
-                                {job.availableTill || 'N/A'}
-                              </div>
-                            </div>
-                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
-                                <DollarSign className="w-3 h-3 text-brand-gold flex-shrink-0" />
-                                Salary
-                              </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.salary}>
-                                {job.salary}
-                              </div>
-                            </div>
-                          </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0 pl-3 border-l border-border">
+                        {/* Save / Heart */}
+                        <button
+                          onClick={() => void toggleSave(job.id)}
+                          disabled={togglingId === job.id}
+                          className="p-2 rounded-lg hover:bg-muted/60 transition-colors disabled:opacity-60"
+                          title={savedJobs.has(job.id) ? 'Remove from saved' : 'Save job'}
+                        >
+                          {togglingId === job.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <Heart className={`w-4 h-4 transition-colors ${
+                              savedJobs.has(job.id)
+                                ? 'fill-red-500 text-red-500'
+                                : 'text-muted-foreground hover:text-red-400'
+                            }`} />
+                          )}
+                        </button>
 
-                          <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
-                            {job.description || 'No description provided for this listing.'}
-                          </p>
-
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            {(job.benefits && job.benefits.length > 0 ? job.benefits : job.requirements.slice(0, 4)).map(item => (
-                              <span
-                                key={item}
-                                className="px-2.5 py-1 rounded-md bg-muted text-[11px] text-muted-foreground border border-border"
-                              >
-                                {item}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border">
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <MapPin className="w-3.5 h-3.5 text-brand-teal" />
-                              {destinationOf(job)}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <DollarSign className="w-3.5 h-3.5 text-brand-gold" />
-                              {job.salary}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                              {job.contractDuration ?? job.type}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Posted {job.posted}
-                            </div>
-                          </div>
-
-                          {/* AI Match */}
-                          <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center gap-2">
-                              <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-                              <span className="text-[11px] text-muted-foreground">AI Match Score:</span>
-                              <div className="flex items-center gap-1.5">
-                                <div className="w-20 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full bg-gradient-to-r from-brand-teal to-brand-gold"
-                                    style={{ width: `${job.aiMatch}%` }}
-                                  />
-                                </div>
-                                <span className="text-[11px] font-semibold text-brand-gold">{job.aiMatch}%</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {applied && (
-                                <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand-teal/10 text-brand-teal text-[11px] font-medium">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  Applied
-                                </span>
-                              )}
-                              <button
-                                onClick={() => openJobDetails(job)}
-                                className="px-4 py-2 bg-brand-gold/10 text-brand-gold rounded-lg text-xs font-medium hover:bg-brand-gold/20 transition-all"
-                              >
-                                View Details
-                              </button>
-                            </div>
-                          </div>
+                        {/* View Details / Applied */}
+                        <div className="flex flex-col items-center gap-1">
+                          {applied && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-teal/10 text-brand-teal text-[9px] font-semibold border border-brand-teal/20">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              Applied
+                            </span>
+                          )}
+                          <button
+                            onClick={() => openJobDetails(job)}
+                            className="px-4 py-2 bg-brand-teal text-white rounded-lg text-xs font-semibold hover:bg-brand-teal/90 active:scale-95 transition-all shadow-sm"
+                          >
+                            View Details
+                          </button>
                         </div>
                       </div>
                     </div>

@@ -1,11 +1,12 @@
 // src/components/jobs/JobApplicationForm.tsx
 
 import { useState, useEffect } from 'react'
-import { UploadCloud, FileText, Loader2, User, MapPin, Briefcase, AlertCircle, X } from 'lucide-react'
+import { UploadCloud, FileText, Loader2, AlertCircle, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 import { uploadApplicantDocument } from '@/lib/data/documents'
-import { applyToJob, updateChecklistItem } from '@/lib/data/mutations'
+import { applyToJob, updateChecklistItem, updateTalentProfile } from '@/lib/data/mutations'
 import type { Job } from '@/types/domain'
 
 interface Props {
@@ -15,9 +16,105 @@ interface Props {
   onCancel: () => void
 }
 
+const categoryOptions = [
+  'Construction',
+  'Healthcare',
+  'Hospitality',
+  'Manufacturing',
+  'Logistics',
+  'Engineering',
+  'Agriculture',
+  'Information Technology',
+]
+
+const cityOptions = [
+  'Karachi',
+  'Lahore',
+  'Islamabad',
+  'Rawalpindi',
+  'Faisalabad',
+  'Multan',
+  'Peshawar',
+  'Quetta',
+  'Gujranwala',
+  'Sialkot',
+  'Hyderabad',
+  'Other',
+]
+
+const qualificationOptions = ['Middle', 'Matric', 'Intermediate', 'Bachelors', 'Masters', 'Other']
+
+const fieldOfWorkOptions = [
+  'AC Technician',
+  'Electrician',
+  'Plumber',
+  'Welder',
+  'Mason',
+  'Carpenter',
+  'Driver',
+  'Cook / Chef',
+  'Waiter',
+  'Housekeeping / Cleaner',
+  'Security Guard',
+  'Caregiver',
+  'Nurse',
+  'Factory Worker',
+  'Other',
+]
+
+const heightOptions = [
+  `Below 5'0"`,
+  `5'0" - 5'3"`,
+  `5'4" - 5'6"`,
+  `5'7" - 5'9"`,
+  `5'10" and above`,
+]
+
+const yesNoOptions = ['Yes', 'No']
+
+interface FormState {
+  name: string
+  gender: string
+  dateOfBirth: string
+  cnic: string
+  city: string
+  phone: string
+  email: string
+  category: string
+  qualification: string
+  fieldOfWork: string
+  experienceYears: string
+  relevantExperienceYears: string
+  foreignExperience: string
+  drivingLicense: string
+  hasCertification: string
+  height: string
+}
+
+const emptyForm: FormState = {
+  name: '',
+  gender: '',
+  dateOfBirth: '',
+  cnic: '',
+  city: '',
+  phone: '',
+  email: '',
+  category: '',
+  qualification: '',
+  fieldOfWork: '',
+  experienceYears: '',
+  relevantExperienceYears: '',
+  foreignExperience: '',
+  drivingLicense: '',
+  hasCertification: '',
+  height: '',
+}
+
 export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCancel }: Props) {
+  const { user } = useAuth()
   const [profile, setProfile] = useState<any>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [form, setForm] = useState<FormState>(emptyForm)
   const [coverNote, setCoverNote] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,7 +123,7 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
   const [uploadedDocId, setUploadedDocId] = useState<string | null>(null)
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
 
-  // Fetch applicant profile to display overview
+  // Fetch applicant profile and pre-fill the form with any previously saved values
   useEffect(() => {
     if (!userId) return
     ;(async () => {
@@ -37,10 +134,33 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
         .maybeSingle()
       if (data) {
         setProfile(data)
+        setForm({
+          name: data.name ?? '',
+          gender: data.gender ?? '',
+          dateOfBirth: data.date_of_birth ?? '',
+          cnic: data.cnic ?? '',
+          city: data.city ?? '',
+          phone: data.phone ?? '',
+          email: data.email ?? user?.email ?? '',
+          category: data.category ?? '',
+          qualification: data.qualification ?? '',
+          fieldOfWork: data.field_of_work ?? '',
+          experienceYears: data.experience_years != null ? String(data.experience_years) : '',
+          relevantExperienceYears:
+            data.relevant_experience_years != null ? String(data.relevant_experience_years) : '',
+          foreignExperience: data.foreign_experience ?? '',
+          drivingLicense: data.driving_license ?? '',
+          hasCertification: data.has_certification ?? '',
+          height: data.height ?? '',
+        })
       }
       setLoadingProfile(false)
     })()
-  }, [userId])
+  }, [userId, user?.email])
+
+  function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm(prev => ({ ...prev, [key]: value }))
+  }
 
   function validateFile(file: File) {
     const allowed = ['application/pdf', 'image/jpeg', 'image/png']
@@ -77,16 +197,70 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
     setUploadedFileName(null)
   }
 
+  function validateForm(): string | null {
+    if (!form.name.trim()) return 'Full Name is required.'
+    if (!form.gender) return 'Gender is required.'
+    if (!form.dateOfBirth) return 'Date of Birth is required.'
+    if (!/^\d{13}$/.test(form.cnic.trim())) return 'CNIC must be exactly 13 digits, no dashes.'
+    if (!form.city) return 'City is required.'
+    if (!form.phone.trim()) return 'Phone Number is required.'
+    if (!form.category) return 'Category is required.'
+    if (!form.qualification) return 'Qualification is required.'
+    if (!form.fieldOfWork) return 'Field of Work is required.'
+    if (form.experienceYears === '' || Number(form.experienceYears) < 0)
+      return 'Total Year(s) of Experience is required.'
+    if (form.relevantExperienceYears === '' || Number(form.relevantExperienceYears) < 0)
+      return 'Year(s) of Job Relevant Experience is required.'
+    if (!form.foreignExperience) return 'Foreign Experience is required.'
+    if (!form.drivingLicense) return 'Driving License is required.'
+    if (!form.hasCertification) return 'Certification is required.'
+    if (!form.height) return 'Height is required.'
+    return null
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!userId || !job) return
 
+    const validationError = validateForm()
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+
     setIsSubmitting(true)
+
+    // 1. Persist the applicant's profile fields captured on this form so
+    // future applications reuse them.
+    const { error: profileError } = await updateTalentProfile(userId, {
+      name: form.name.trim(),
+      gender: form.gender,
+      date_of_birth: form.dateOfBirth,
+      cnic: form.cnic.trim(),
+      city: form.city,
+      phone: form.phone.trim(),
+      email: form.email.trim() || null,
+      category: form.category,
+      qualification: form.qualification,
+      field_of_work: form.fieldOfWork,
+      experience_years: Number(form.experienceYears),
+      relevant_experience_years: Number(form.relevantExperienceYears),
+      foreign_experience: form.foreignExperience,
+      driving_license: form.drivingLicense,
+      has_certification: form.hasCertification,
+      height: form.height,
+    })
+
+    if (profileError) {
+      setIsSubmitting(false)
+      toast.error(profileError)
+      return
+    }
 
     // Generate a deterministic job order code matching the convention
     const jobOrderCode = `JO-${job.id.slice(0, 8).toUpperCase()}`
 
-    // 1. Create the placement row (stage 1 = applied)
+    // 2. Create the placement row (stage 1 = applied)
     const { data: placement, error: applyError } = await applyToJob({
       talent_id: userId,
       job_id: job.id,
@@ -109,7 +283,7 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
     const placementId = placement?.id
 
     if (placementId) {
-      // 2. Link the uploaded document to this placement, if uploaded
+      // 3. Link the uploaded document to this placement, if uploaded
       if (uploadedDocId) {
         const { error: linkError } = await supabase
           .from('compliance_documents')
@@ -117,7 +291,7 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
           .eq('id', uploadedDocId)
 
         if (!linkError) {
-          // 3. Mark the corresponding checklist item as pending
+          // 4. Mark the corresponding checklist item as pending
           const { data: checklistItem } = await supabase
             .from('compliance_checklist_items')
             .select('id')
@@ -179,60 +353,201 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
   }
 
   const inputCls = 'w-full px-3.5 py-2.5 bg-muted/40 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-brand-gold/50 focus:border-brand-gold/50 transition-colors'
+  const selectCls = `${inputCls} appearance-none cursor-pointer`
   const labelCls = 'text-[11px] font-semibold text-foreground uppercase tracking-wider block mb-1.5'
+  const required = <span className="text-red-500">*</span>
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ── Section 1: Profile Summary Review ── */}
+      {/* ── Section 1: Applicant Details ── */}
       <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-border">
-          <User className="w-4 h-4 text-brand-gold" />
-          <h4 className="text-sm font-semibold text-foreground">Review Profile Details</h4>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-xs text-muted-foreground block">Full Name</span>
-            <span className="font-medium text-foreground">{profile.name}</span>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground block">Role Title</span>
-            <span className="font-medium text-foreground">{profile.role_title}</span>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground block">Location</span>
-            <div className="flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3.5 h-3.5 text-brand-teal" />
-              <span className="font-medium text-foreground">{profile.location}</span>
-            </div>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground block">Years of Experience</span>
-            <div className="flex items-center gap-1 mt-0.5">
-              <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="font-medium text-foreground">{profile.experience_years} years</span>
-            </div>
-          </div>
+          <h4 className="text-sm font-semibold text-foreground">Applicant Details</h4>
         </div>
 
-        {profile.skills && profile.skills.length > 0 && (
-          <div className="pt-2">
-            <span className="text-xs text-muted-foreground block mb-1.5">Key Skills</span>
-            <div className="flex flex-wrap gap-1.5">
-              {profile.skills.map((skill: string) => (
-                <span
-                  key={skill}
-                  className="px-2 py-0.5 rounded bg-muted text-[11px] text-muted-foreground border border-border"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className={labelCls}>Full Name {required}</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={e => setField('name', e.target.value)}
+              className={inputCls}
+              placeholder="Enter Your Name"
+            />
           </div>
-        )}
+          <div>
+            <label className={labelCls}>Gender {required}</label>
+            <select value={form.gender} onChange={e => setField('gender', e.target.value)} className={selectCls}>
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Date of Birth {required}</label>
+            <input
+              type="date"
+              value={form.dateOfBirth}
+              onChange={e => setField('dateOfBirth', e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>CNIC {required}</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={13}
+              value={form.cnic}
+              onChange={e => setField('cnic', e.target.value.replace(/\D/g, ''))}
+              className={inputCls}
+              placeholder="1111111111111"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>City {required}</label>
+            <select value={form.city} onChange={e => setField('city', e.target.value)} className={selectCls}>
+              <option value="">Select City</option>
+              {cityOptions.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Email Address</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setField('email', e.target.value)}
+              className={inputCls}
+              placeholder="abc@gmail.com"
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Phone Number {required}</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={e => setField('phone', e.target.value)}
+              className={inputCls}
+              placeholder="03331234567"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Select Category {required}</label>
+            <select value={form.category} onChange={e => setField('category', e.target.value)} className={selectCls}>
+              <option value="">Category</option>
+              {categoryOptions.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Qualification {required}</label>
+            <select
+              value={form.qualification}
+              onChange={e => setField('qualification', e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Select</option>
+              {qualificationOptions.map(q => (
+                <option key={q} value={q}>{q}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className={labelCls}>Field of Work {required}</label>
+            <select
+              value={form.fieldOfWork}
+              onChange={e => setField('fieldOfWork', e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Select</option>
+              {fieldOfWorkOptions.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Total Year(s) of Experience {required}</label>
+            <input
+              type="number"
+              min={0}
+              value={form.experienceYears}
+              onChange={e => setField('experienceYears', e.target.value)}
+              className={inputCls}
+              placeholder="Select Experience in Years"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Year(s) of Job Relevant Experience {required}</label>
+            <input
+              type="number"
+              min={0}
+              value={form.relevantExperienceYears}
+              onChange={e => setField('relevantExperienceYears', e.target.value)}
+              className={inputCls}
+              placeholder="Select Year(s)"
+            />
+          </div>
+
+          <div>
+            <label className={labelCls}>Foreign Experience {required}</label>
+            <select
+              value={form.foreignExperience}
+              onChange={e => setField('foreignExperience', e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Select</option>
+              {yesNoOptions.map(o => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Driving License {required}</label>
+            <select
+              value={form.drivingLicense}
+              onChange={e => setField('drivingLicense', e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Select</option>
+              {yesNoOptions.map(o => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Certification {required}</label>
+            <select
+              value={form.hasCertification}
+              onChange={e => setField('hasCertification', e.target.value)}
+              className={selectCls}
+            >
+              <option value="">Select</option>
+              {yesNoOptions.map(o => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className={labelCls}>Height {required}</label>
+            <select value={form.height} onChange={e => setField('height', e.target.value)} className={selectCls}>
+              <option value="">Select Height</option>
+              {heightOptions.map(h => (
+                <option key={h} value={h}>{h}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <p className="text-[11px] text-muted-foreground bg-brand-teal/5 p-2 rounded-lg border border-brand-teal/10">
-          Note: Ethical employers review your fully verified profile. Updates can be made anytime in your dashboard.
+          Note: Ethical employers review your fully verified profile. These details are saved to your profile and reused for future applications.
         </p>
       </div>
 
@@ -253,7 +568,7 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
       {/* ── Section 3: Resume Upload ── */}
       <div className="space-y-2">
         <label className={labelCls}>Attach Resume / CV</label>
-        
+
         {uploadedFileName ? (
           <div className="flex items-center justify-between p-3.5 rounded-xl border border-brand-teal/20 bg-brand-teal/5">
             <div className="flex items-center gap-2.5 min-w-0">

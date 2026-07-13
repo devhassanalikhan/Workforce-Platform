@@ -37,6 +37,22 @@ export interface TalentProfilePayload {
   languages: string[]
   certifications: string[]
   available: boolean
+  // Apply Now form fields (OES-style applicant profile data) — all optional
+  // since existing rows predate these columns.
+  gender?: string | null
+  date_of_birth?: string | null
+  cnic?: string | null
+  city?: string | null
+  phone?: string | null
+  email?: string | null
+  category?: string | null
+  qualification?: string | null
+  field_of_work?: string | null
+  relevant_experience_years?: number | null
+  foreign_experience?: string | null
+  driving_license?: string | null
+  has_certification?: string | null
+  height?: string | null
 }
 
 export interface CompanyPayload {

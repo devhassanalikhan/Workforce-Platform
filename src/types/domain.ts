@@ -45,6 +45,23 @@ export interface TalentProfile {
   verified: boolean
   available: boolean
   badge: string | null
+  // Applicant demographic/professional fields collected via the Apply Now
+  // form (JobApplicationForm.tsx), modelled after the OES registration form.
+  // Filled in once and reused across every future application.
+  gender?: string | null
+  dateOfBirth?: string | null
+  cnic?: string | null
+  city?: string | null
+  phone?: string | null
+  email?: string | null
+  category?: string | null
+  qualification?: string | null
+  fieldOfWork?: string | null
+  relevantExperienceYears?: number | null
+  foreignExperience?: string | null
+  drivingLicense?: string | null
+  hasCertification?: string | null
+  height?: string | null
   // Employer-only fields — populated only when the viewer has an employer/admin
   // role (see TalentPool.tsx canSeePrivateFields), sourced from the
   // `placements` table rather than talent_profiles.

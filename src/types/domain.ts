@@ -21,6 +21,15 @@ export interface Job {
   aiMatch: number
   saved: boolean
   hot: boolean
+  publishedOn?: string | null
+  jobNature?: string | null
+  project?: string | null
+  ageLimit?: string | null
+  fieldOfWork?: string | null
+  availableTill?: string | null
+  qualifications?: string | null
+  note?: string | null
+  termsApplied?: boolean
 }
 
 export interface TalentProfile {

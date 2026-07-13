@@ -26,6 +26,15 @@ interface JobRow {
   is_hot: boolean
   posted_at: string
   companies: { name: string; logo_url: string | null } | null
+  published_on?: string | null
+  job_nature?: string | null
+  project?: string | null
+  age_limit?: string | null
+  field_of_work?: string | null
+  available_till?: string | null
+  qualifications?: string | null
+  note?: string | null
+  terms_applied?: boolean
 }
 
 function formatSalary(
@@ -74,6 +83,15 @@ function mapRow(row: JobRow): Job {
     aiMatch: 0,
     saved: false,
     hot: row.is_hot,
+    publishedOn: row.published_on,
+    jobNature: row.job_nature,
+    project: row.project,
+    ageLimit: row.age_limit,
+    fieldOfWork: row.field_of_work,
+    availableTill: row.available_till,
+    qualifications: row.qualifications,
+    note: row.note,
+    termsApplied: row.terms_applied,
   }
 }
 
@@ -108,7 +126,7 @@ export async function getJobs(): Promise<Job[]> {
   const { data, error } = await supabase
     .from('jobs')
     .select(
-      'id, title, location, destination_country, destination_city, visa_status, contract_duration, oep_license_no, benefits, salary_min, salary_max, salary_frequency, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at, companies(name, logo_url)'
+      'id, title, location, destination_country, destination_city, visa_status, contract_duration, oep_license_no, benefits, salary_min, salary_max, salary_frequency, currency, employment_type, category, experience_level, description, requirements, is_hot, posted_at, published_on, job_nature, project, age_limit, field_of_work, available_till, qualifications, note, terms_applied, companies(name, logo_url)'
     )
 
   if (error || !data || data.length === 0) {

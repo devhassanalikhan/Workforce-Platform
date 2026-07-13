@@ -18,9 +18,8 @@ import {
   Globe,
   Loader2,
   CheckCircle2,
-  Plane,
-  ShieldCheck,
   CalendarDays,
+  Users,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
@@ -42,6 +41,18 @@ const jobCategories = [
   'Engineering',
   'Agriculture',
   'Information Technology',
+  'Steel Fitters',
+  'Camp Bosses',
+  'Equipment Operations Supervisor',
+  'IT Systems',
+  'Timekeeper',
+  'Steel Fixer',
+  'Assistant Camp Boss',
+  'Senior Infrastructure Foreman',
+  'Pipe Fitters',
+  'Plant Operators',
+  'Scaffolders',
+  'Mason',
 ]
 
 const locations = [
@@ -476,34 +487,78 @@ export default function JobsMarketplace() {
                             </button>
                           </div>
 
-                          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4">
                             <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                <Plane className="w-3 h-3 text-brand-teal" />
-                                Destination
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <Building2 className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                                Project
                               </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground">{destinationOf(job)}</div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.project || job.company}>
+                                {job.project || job.company}
+                              </div>
                             </div>
                             <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                <ShieldCheck className="w-3 h-3 text-brand-teal" />
-                                Visa
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <MapPin className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                                Location
                               </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.visaStatus ?? 'To be confirmed'}</div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={destinationOf(job)}>
+                                {destinationOf(job)}
+                              </div>
                             </div>
                             <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                <CalendarDays className="w-3 h-3 text-brand-gold" />
-                                Contract
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <Clock className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                                Job Nature
                               </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.contractDuration ?? job.type}</div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.jobNature || job.type}>
+                                {job.jobNature || job.type}
+                              </div>
                             </div>
                             <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                <DollarSign className="w-3 h-3 text-brand-gold" />
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <Star className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                                Experience
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.experience}>
+                                {job.experience}
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <Users className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                                Age Limit
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.ageLimit || 'N/A'}>
+                                {job.ageLimit || 'N/A'}
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <Briefcase className="w-3 h-3 text-brand-teal flex-shrink-0" />
+                                Field of Work
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.fieldOfWork || job.category}>
+                                {job.fieldOfWork || job.category}
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <CalendarDays className="w-3 h-3 text-brand-gold flex-shrink-0" />
+                                Available Till
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.availableTill || 'N/A'}>
+                                {job.availableTill || 'N/A'}
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                                <DollarSign className="w-3 h-3 text-brand-gold flex-shrink-0" />
                                 Salary
                               </div>
-                              <div className="mt-1 text-xs font-medium text-card-foreground">{job.salary}</div>
+                              <div className="mt-1 text-xs font-medium text-card-foreground truncate" title={job.salary}>
+                                {job.salary}
+                              </div>
                             </div>
                           </div>
 

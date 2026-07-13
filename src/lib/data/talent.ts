@@ -15,6 +15,21 @@ interface TalentRow {
   verified: boolean
   available: boolean
   badge: string | null
+  // OES-style applicant demographic fields
+  gender?: string | null
+  date_of_birth?: string | null
+  cnic?: string | null
+  city?: string | null
+  phone?: string | null
+  email?: string | null
+  category?: string | null
+  qualification?: string | null
+  field_of_work?: string | null
+  relevant_experience_years?: number | null
+  foreign_experience?: string | null
+  driving_license?: string | null
+  has_certification?: string | null
+  height?: string | null
 }
 
 interface PlacementRow {
@@ -39,6 +54,20 @@ function mapTalentRow(row: TalentRow): TalentProfile {
     verified: row.verified,
     available: row.available,
     badge: row.badge,
+    gender: row.gender,
+    dateOfBirth: row.date_of_birth,
+    cnic: row.cnic,
+    city: row.city,
+    phone: row.phone,
+    email: row.email,
+    category: row.category,
+    qualification: row.qualification,
+    fieldOfWork: row.field_of_work,
+    relevantExperienceYears: row.relevant_experience_years,
+    foreignExperience: row.foreign_experience,
+    drivingLicense: row.driving_license,
+    hasCertification: row.has_certification,
+    height: row.height,
   }
 }
 
@@ -52,17 +81,15 @@ function mapTalentRow(row: TalentRow): TalentProfile {
 // TalentPool.tsx's canSeePrivateFields, mirrored by the `placements` RLS
 // policy itself).
 export async function getTalent(canSeePrivateFields: boolean): Promise<TalentProfile[]> {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('talent_profiles')
     .select(
-      'id, name, photo_url, role_title, location, experience_years, skills, languages, certifications, verified, available, badge'
+      'id, name, photo_url, role_title, location, experience_years, skills, languages, certifications, verified, available, badge, gender, date_of_birth, cnic, city, phone, email, category, qualification, field_of_work, relevant_experience_years, foreign_experience, driving_license, has_certification, height'
     )
 
-  if (error || !data || data.length === 0) {
-    return mockTalent
-  }
-
-  const talents = (data as TalentRow[]).map(mapTalentRow)
+  const dbTalents = data && data.length > 0 ? (data as TalentRow[]).map(mapTalentRow) : []
+  const dbIds = new Set(dbTalents.map(t => t.id))
+  const talents = [...dbTalents, ...mockTalent.filter(t => !dbIds.has(t.id))]
 
   if (!canSeePrivateFields) {
     return talents

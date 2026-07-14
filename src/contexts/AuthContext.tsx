@@ -30,6 +30,25 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+// Supabase sometimes returns an unstructured error body (e.g. a bare `{}`)
+// when an internal/database error occurs (like a failing trigger on
+// auth.users). supabase-js falls back to stringifying that body, which can
+// literally produce the string "{}" — not useful to show a user. This
+// normalizes any such non-messages into a friendly fallback.
+function toReadableAuthError(message: string | undefined | null): string {
+  const trimmed = (message ?? '').trim()
+  const looksUnhelpful =
+    !trimmed ||
+    trimmed === '{}' ||
+    trimmed === '[object Object]' ||
+    (trimmed.startsWith('{') && trimmed.endsWith('}'))
+
+  if (looksUnhelpful) {
+    return 'Something went wrong while creating your account. Please try again in a moment, if the problem continues, contact support.'
+  }
+  return trimmed
+}
+
 function sessionToUser(session: Session): AuthUser | null {
   const rawMeta = session.user.user_metadata
   if (!rawMeta || typeof rawMeta !== 'object') return null
@@ -75,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string): Promise<{ error: string | null }> {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { error: error.message }
+    if (error) return { error: toReadableAuthError(error.message) }
     if (!data.session) return { error: 'Sign-in succeeded but no session was returned.' }
 
     const rawMeta = data.session.user.user_metadata
@@ -131,7 +150,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: { data: normalizedMetadata },
     })
-    if (error) return { error: error.message, needsEmailVerification: false }
+    if (error) {
+      // Log the raw error for debugging — the message shown to the user is
+      // sanitized, but the console/network tab retains the real detail,
+      // and this makes it easy to spot in the browser console too.
+      console.error('Supabase signUp error:', error)
+      return { error: toReadableAuthError(error.message), needsEmailVerification: false }
+    }
     // If Supabase's "Confirm email" setting is on, signUp succeeds but
     // returns no session until the user clicks the verification link.
     return { error: null, needsEmailVerification: !data.session }

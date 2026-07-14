@@ -93,6 +93,7 @@ export default function AdminEmployersOverview() {
         certifications: [],
         verified: false,
         available: true,
+        badge: null,
       })
       setApplicantModalOpen(true)
     }

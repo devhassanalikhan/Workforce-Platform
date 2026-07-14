@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Globe, Lock, Eye, EyeOff, AlertCircle, User, Building2, ArrowLeft,
   Mail, CheckCircle2, Briefcase, Hash, MapPin, Phone, Link2,
@@ -18,7 +21,7 @@ const BUSINESS_TYPES = [
   'Manpower Export Company',
   'Staffing / Outsourcing Firm',
   'Other',
-]
+] as const
 
 const COUNTRIES = [
   'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
@@ -152,6 +155,55 @@ const COUNTRY_CODES: { name: string; code: string }[] = [
   { name: 'Zimbabwe', code: '+263' },
 ]
 
+// ─────────────────────────────────────────────────────────────────────────
+// Zod schemas
+// ─────────────────────────────────────────────────────────────────────────
+
+const applicantSchema = z.object({
+  full_name: z.string().trim().min(1, 'Full name is required'),
+  email: z.string().trim().min(1, 'Email is required').email('Enter a valid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+type ApplicantFormValues = z.infer<typeof applicantSchema>
+
+const employerSchema = z
+  .object({
+    // Company details
+    company_name: z.string().trim().min(1, 'Company name is required'),
+    business_type: z.enum(BUSINESS_TYPES, {
+      error: 'Please select a business type',
+    }),
+    registration_number: z.string().trim().min(1, 'Registration number is required'),
+    registration_authority: z.string().trim().optional(),
+    company_address: z.string().trim().optional(),
+    country: z.string().trim().min(1, 'Please select a country'),
+    company_website: z
+      .string()
+      .trim()
+      .optional()
+      .refine(val => !val || /^https?:\/\/.+\..+/.test(val), 'Enter a valid URL (e.g. https://acme.com)'),
+
+    // Contact person
+    contact_person: z.string().trim().min(1, "Contact person's full name is required"),
+    designation: z.string().trim().optional(),
+    phone_country_code: z.string().trim().min(1, 'Required'),
+    phone_number: z.string().trim().min(1, 'Phone number is required'),
+
+    // Account
+    email: z.string().trim().min(1, 'Email is required').email('Enter a valid email address'),
+    password: z
+      .string()
+      .min(8, 'Must be at least 8 characters')
+      .regex(/[A-Z]/, 'Must include an uppercase letter')
+      .regex(/[0-9]/, 'Must include a number'),
+    confirm_password: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine(data => data.password === data.confirm_password, {
+    message: 'Passwords do not match.',
+    path: ['confirm_password'],
+  })
+type EmployerFormValues = z.infer<typeof employerSchema>
+
 export default function SignupPage() {
   const { user, signUp, getHomeForRole } = useAuth()
   const navigate = useNavigate()
@@ -164,55 +216,55 @@ export default function SignupPage() {
   const initialStep: Step = preselect === 'employer' || preselect === 'applicant' ? preselect : 'choice'
 
   const [step, setStep] = useState<Step>(initialStep)
-
-  // Shared / applicant fields
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // Employer-only fields
-  const [companyName, setCompanyName] = useState('')
-  const [businessType, setBusinessType] = useState('')
-  const [registrationNumber, setRegistrationNumber] = useState('')
-  const [registrationAuthority, setRegistrationAuthority] = useState('')
-  const [companyAddress, setCompanyAddress] = useState('')
-  const [country, setCountry] = useState('')
-  const [contactPerson, setContactPerson] = useState('')
-  const [designation, setDesignation] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [phoneCountryCode, setPhoneCountryCode] = useState('+92')
-  const [companyWebsite, setCompanyWebsite] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  // Logo upload lives outside the form schema — it's a File, not form data,
+  // and never blocks submission.
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
+  // Server-side error (e.g. "email already registered") — separate from
+  // field-level validation errors, which RHF/Zod handle.
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
   const [submittedEmail, setSubmittedEmail] = useState('')
+
+  const applicantForm = useForm<ApplicantFormValues>({
+    resolver: zodResolver(applicantSchema),
+    defaultValues: { full_name: '', email: '', password: '' },
+    mode: 'onBlur',
+  })
+
+  const employerForm = useForm<EmployerFormValues>({
+    resolver: zodResolver(employerSchema),
+    defaultValues: {
+      company_name: '',
+      business_type: undefined,
+      registration_number: '',
+      registration_authority: '',
+      company_address: '',
+      country: '',
+      company_website: '',
+      contact_person: '',
+      designation: '',
+      phone_country_code: '+92',
+      phone_number: '',
+      email: '',
+      password: '',
+      confirm_password: '',
+    },
+    mode: 'onBlur',
+  })
 
   useEffect(() => {
     if (user) navigate(getHomeForRole(user.role), { replace: true })
   }, [user, navigate, getHomeForRole])
 
   function resetForm() {
-    setFullName('')
-    setCompanyName('')
-    setBusinessType('')
-    setRegistrationNumber('')
-    setRegistrationAuthority('')
-    setCompanyAddress('')
-    setCountry('')
-    setContactPerson('')
-    setDesignation('')
-    setPhoneNumber('')
-    setPhoneCountryCode('+92')
-    setCompanyWebsite('')
-    setEmail('')
-    setPassword('')
-    setConfirmPassword('')
+    applicantForm.reset()
+    employerForm.reset()
     setLogoFile(null)
     setLogoPreview(null)
     setError(null)
@@ -254,39 +306,18 @@ export default function SignupPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent, role: 'applicant' | 'employer') {
-    e.preventDefault()
+  async function completeSignup(
+    role: 'applicant' | 'employer',
+    email: string,
+    password: string,
+    metadata: Record<string, unknown>,
+  ) {
     setError(null)
-
-    if (role === 'employer') {
-      if (password !== confirmPassword) {
-        setError('Passwords do not match.')
-        return
-      }
-      if (!businessType) {
-        setError('Please select a business type.')
-        return
-      }
-    }
-
     setIsSubmitting(true)
 
     const { error: signUpError, needsEmailVerification } = await signUp(email.trim(), password, {
       role,
-      full_name: fullName.trim(),
-      ...(role === 'employer' ? {
-        company_name: companyName.trim(),
-        business_type: businessType,
-        registration_number: registrationNumber.trim(),
-        registration_authority: registrationAuthority.trim(),
-        company_address: companyAddress.trim(),
-        country,
-        contact_person: contactPerson.trim(),
-        designation: designation.trim(),
-        phone_country_code: phoneCountryCode,
-        phone_number: phoneNumber.trim(),
-        company_website: companyWebsite.trim(),
-      } : {}),
+      ...metadata,
     })
 
     if (signUpError) {
@@ -309,6 +340,29 @@ export default function SignupPage() {
     }
   }
 
+  const onSubmitApplicant = applicantForm.handleSubmit(async data => {
+    await completeSignup('applicant', data.email, data.password, {
+      full_name: data.full_name.trim(),
+    })
+  })
+
+  const onSubmitEmployer = employerForm.handleSubmit(async data => {
+    await completeSignup('employer', data.email, data.password, {
+      full_name: data.contact_person.trim(),
+      company_name: data.company_name.trim(),
+      business_type: data.business_type,
+      registration_number: data.registration_number.trim(),
+      registration_authority: (data.registration_authority ?? '').trim(),
+      company_address: (data.company_address ?? '').trim(),
+      country: data.country,
+      contact_person: data.contact_person.trim(),
+      designation: (data.designation ?? '').trim(),
+      phone_country_code: data.phone_country_code,
+      phone_number: data.phone_number.trim(),
+      company_website: (data.company_website ?? '').trim(),
+    })
+  })
+
   async function handleResend() {
     setResendStatus('sending')
     await supabase.auth.resend({ type: 'signup', email: submittedEmail })
@@ -317,7 +371,19 @@ export default function SignupPage() {
 
   const inputClass =
     'w-full px-3.5 py-2.5 bg-muted/40 border border-border rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-brand-gold/50 focus:border-brand-gold/50 transition-colors'
+  const inputErrorClass = 'border-destructive/50 focus:ring-destructive/40 focus:border-destructive/50'
   const labelClass = 'text-[11px] font-medium text-muted-foreground uppercase tracking-wider block mb-1.5'
+  const fieldErrorClass = 'text-[11px] text-destructive mt-1'
+
+  const {
+    register: registerApplicant,
+    formState: { errors: applicantErrors },
+  } = applicantForm
+
+  const {
+    register: registerEmployer,
+    formState: { errors: employerErrors },
+  } = employerForm
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
@@ -380,7 +446,7 @@ export default function SignupPage() {
               </>
             )}
 
-            {/* ── Step: applicant (unchanged) ── */}
+            {/* ── Step: applicant ── */}
             {step === 'applicant' && (
               <>
                 <button
@@ -395,31 +461,33 @@ export default function SignupPage() {
                   Create your account to start browsing verified jobs.
                 </p>
 
-                <form onSubmit={e => handleSubmit(e, 'applicant')} className="space-y-3">
+                <form onSubmit={onSubmitApplicant} className="space-y-3" noValidate>
                   <div>
                     <label className={labelClass}>Full Name</label>
                     <input
                       type="text"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
                       placeholder="Jane Doe"
-                      required
                       autoComplete="name"
-                      className={inputClass}
+                      className={`${inputClass} ${applicantErrors.full_name ? inputErrorClass : ''}`}
+                      {...registerApplicant('full_name')}
                     />
+                    {applicantErrors.full_name && (
+                      <p className={fieldErrorClass}>{applicantErrors.full_name.message}</p>
+                    )}
                   </div>
 
                   <div>
                     <label className={labelClass}>Email Address</label>
                     <input
                       type="email"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      required
                       autoComplete="email"
-                      className={inputClass}
+                      className={`${inputClass} ${applicantErrors.email ? inputErrorClass : ''}`}
+                      {...registerApplicant('email')}
                     />
+                    {applicantErrors.email && (
+                      <p className={fieldErrorClass}>{applicantErrors.email.message}</p>
+                    )}
                   </div>
 
                   <div>
@@ -427,13 +495,10 @@ export default function SignupPage() {
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        required
-                        minLength={6}
                         autoComplete="new-password"
-                        className={`${inputClass} pr-10`}
+                        className={`${inputClass} pr-10 ${applicantErrors.password ? inputErrorClass : ''}`}
+                        {...registerApplicant('password')}
                       />
                       <button
                         type="button"
@@ -444,6 +509,9 @@ export default function SignupPage() {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    {applicantErrors.password && (
+                      <p className={fieldErrorClass}>{applicantErrors.password.message}</p>
+                    )}
                   </div>
 
                   {error && (
@@ -455,7 +523,7 @@ export default function SignupPage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting || !fullName || !email || !password}
+                    disabled={isSubmitting}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-gold text-black text-[13px] font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                   >
                     <Lock className="w-3.5 h-3.5" />
@@ -465,7 +533,7 @@ export default function SignupPage() {
               </>
             )}
 
-            {/* ── Step: employer (redesigned) ── */}
+            {/* ── Step: employer ── */}
             {step === 'employer' && (
               <>
                 <button
@@ -488,7 +556,7 @@ export default function SignupPage() {
                   .employer-scroll { scrollbar-width: thin; }
                 `}</style>
                 <div className="relative">
-                  <form onSubmit={e => handleSubmit(e, 'employer')} className="employer-scroll space-y-5 max-h-[65vh] overflow-y-auto pr-3 -mr-3">
+                  <form onSubmit={onSubmitEmployer} className="employer-scroll space-y-5 max-h-[65vh] overflow-y-auto pr-3 -mr-3" noValidate>
 
                   {/* Logo upload */}
                   <div className="flex items-center gap-4">
@@ -539,13 +607,14 @@ export default function SignupPage() {
                       <label className={labelClass}>Company Name</label>
                       <input
                         type="text"
-                        value={companyName}
-                        onChange={e => setCompanyName(e.target.value)}
                         placeholder="Acme Corp"
-                        required
                         autoComplete="organization"
-                        className={inputClass}
+                        className={`${inputClass} ${employerErrors.company_name ? inputErrorClass : ''}`}
+                        {...registerEmployer('company_name')}
                       />
+                      {employerErrors.company_name && (
+                        <p className={fieldErrorClass}>{employerErrors.company_name.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -553,10 +622,9 @@ export default function SignupPage() {
                       <div className="relative">
                         <Briefcase className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <select
-                          value={businessType}
-                          onChange={e => setBusinessType(e.target.value)}
-                          required
-                          className={`${inputClass} pl-9 pr-9 appearance-none`}
+                          defaultValue=""
+                          className={`${inputClass} pl-9 pr-9 appearance-none ${employerErrors.business_type ? inputErrorClass : ''}`}
+                          {...registerEmployer('business_type')}
                         >
                           <option value="" disabled>Select type</option>
                           {BUSINESS_TYPES.map(t => (
@@ -565,6 +633,9 @@ export default function SignupPage() {
                         </select>
                         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
+                      {employerErrors.business_type && (
+                        <p className={fieldErrorClass}>{employerErrors.business_type.message}</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -574,22 +645,22 @@ export default function SignupPage() {
                           <Hash className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
-                            value={registrationNumber}
-                            onChange={e => setRegistrationNumber(e.target.value)}
                             placeholder="e.g. 1234567"
-                            required
-                            className={`${inputClass} pl-9`}
+                            className={`${inputClass} pl-9 ${employerErrors.registration_number ? inputErrorClass : ''}`}
+                            {...registerEmployer('registration_number')}
                           />
                         </div>
+                        {employerErrors.registration_number && (
+                          <p className={fieldErrorClass}>{employerErrors.registration_number.message}</p>
+                        )}
                       </div>
                       <div>
                         <label className={labelClass}>Registration Authority</label>
                         <input
                           type="text"
-                          value={registrationAuthority}
-                          onChange={e => setRegistrationAuthority(e.target.value)}
                           placeholder="e.g. SECP"
                           className={inputClass}
+                          {...registerEmployer('registration_authority')}
                         />
                       </div>
                     </div>
@@ -600,10 +671,9 @@ export default function SignupPage() {
                         <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-3 pointer-events-none" />
                         <input
                           type="text"
-                          value={companyAddress}
-                          onChange={e => setCompanyAddress(e.target.value)}
                           placeholder="Street, city, country"
                           className={`${inputClass} pl-9`}
+                          {...registerEmployer('company_address')}
                         />
                       </div>
                     </div>
@@ -613,10 +683,9 @@ export default function SignupPage() {
                       <div className="relative">
                         <Flag className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <select
-                          value={country}
-                          onChange={e => setCountry(e.target.value)}
-                          required
-                          className={`${inputClass} pl-9 pr-9 appearance-none`}
+                          defaultValue=""
+                          className={`${inputClass} pl-9 pr-9 appearance-none ${employerErrors.country ? inputErrorClass : ''}`}
+                          {...registerEmployer('country')}
                         >
                           <option value="" disabled>Select country</option>
                           {COUNTRIES.map(c => (
@@ -625,6 +694,9 @@ export default function SignupPage() {
                         </select>
                         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       </div>
+                      {employerErrors.country && (
+                        <p className={fieldErrorClass}>{employerErrors.country.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -633,12 +705,14 @@ export default function SignupPage() {
                         <Link2 className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="url"
-                          value={companyWebsite}
-                          onChange={e => setCompanyWebsite(e.target.value)}
                           placeholder="https://acme.com"
-                          className={`${inputClass} pl-9`}
+                          className={`${inputClass} pl-9 ${employerErrors.company_website ? inputErrorClass : ''}`}
+                          {...registerEmployer('company_website')}
                         />
                       </div>
+                      {employerErrors.company_website && (
+                        <p className={fieldErrorClass}>{employerErrors.company_website.message}</p>
+                      )}
                     </div>
                   </div>
 
@@ -652,14 +726,15 @@ export default function SignupPage() {
                         <UserSquare2 className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="text"
-                          value={fullName}
-                          onChange={e => setFullName(e.target.value)}
                           placeholder="Jane Doe"
-                          required
                           autoComplete="name"
-                          className={`${inputClass} pl-9`}
+                          className={`${inputClass} pl-9 ${employerErrors.contact_person ? inputErrorClass : ''}`}
+                          {...registerEmployer('contact_person')}
                         />
                       </div>
+                      {employerErrors.contact_person && (
+                        <p className={fieldErrorClass}>{employerErrors.contact_person.message}</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -667,10 +742,9 @@ export default function SignupPage() {
                         <label className={labelClass}>Designation</label>
                         <input
                           type="text"
-                          value={designation}
-                          onChange={e => setDesignation(e.target.value)}
                           placeholder="HR Manager"
                           className={inputClass}
+                          {...registerEmployer('designation')}
                         />
                       </div>
                       <div>
@@ -678,10 +752,9 @@ export default function SignupPage() {
                         <div className="flex gap-2">
                           <div className="relative flex-shrink-0 w-[78px]">
                             <select
-                              value={phoneCountryCode}
-                              onChange={e => setPhoneCountryCode(e.target.value)}
                               className={`${inputClass} w-full pl-2.5 pr-6 appearance-none truncate`}
                               aria-label="Phone country code"
+                              {...registerEmployer('phone_country_code')}
                             >
                               {Array.from(new Set(COUNTRY_CODES.map(c => c.code))).sort((a, b) => a.length - b.length || a.localeCompare(b)).map(code => (
                                 <option key={code} value={code}>
@@ -695,13 +768,15 @@ export default function SignupPage() {
                             <Phone className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             <input
                               type="tel"
-                              value={phoneNumber}
-                              onChange={e => setPhoneNumber(e.target.value)}
                               placeholder="300 1234567"
-                              className={`${inputClass} w-full pl-9`}
+                              className={`${inputClass} w-full pl-9 ${employerErrors.phone_number ? inputErrorClass : ''}`}
+                              {...registerEmployer('phone_number')}
                             />
                           </div>
                         </div>
+                        {employerErrors.phone_number && (
+                          <p className={fieldErrorClass}>{employerErrors.phone_number.message}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -716,14 +791,15 @@ export default function SignupPage() {
                         <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           type="email"
-                          value={email}
-                          onChange={e => setEmail(e.target.value)}
                           placeholder="you@example.com"
-                          required
                           autoComplete="email"
-                          className={`${inputClass} pl-9`}
+                          className={`${inputClass} pl-9 ${employerErrors.email ? inputErrorClass : ''}`}
+                          {...registerEmployer('email')}
                         />
                       </div>
+                      {employerErrors.email && (
+                        <p className={fieldErrorClass}>{employerErrors.email.message}</p>
+                      )}
                     </div>
 
                     <div>
@@ -731,13 +807,10 @@ export default function SignupPage() {
                       <div className="relative">
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={e => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          required
-                          minLength={8}
                           autoComplete="new-password"
-                          className={`${inputClass} pr-10`}
+                          className={`${inputClass} pr-10 ${employerErrors.password ? inputErrorClass : ''}`}
+                          {...registerEmployer('password')}
                         />
                         <button
                           type="button"
@@ -748,23 +821,27 @@ export default function SignupPage() {
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      <p className="text-[10.5px] text-muted-foreground mt-1 leading-relaxed">
-                        At least 8 characters, with one number and one uppercase letter — e.g. Pakistan@2024
-                      </p>
+                      {employerErrors.password ? (
+                        <p className={fieldErrorClass}>{employerErrors.password.message}</p>
+                      ) : (
+                        <p className="text-[10.5px] text-muted-foreground mt-1 leading-relaxed">
+                          At least 8 characters, with one number and one uppercase letter — e.g. Pakistan@2024
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className={labelClass}>Confirm Password</label>
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
-                        required
-                        minLength={8}
                         autoComplete="new-password"
-                        className={inputClass}
+                        className={`${inputClass} ${employerErrors.confirm_password ? inputErrorClass : ''}`}
+                        {...registerEmployer('confirm_password')}
                       />
+                      {employerErrors.confirm_password && (
+                        <p className={fieldErrorClass}>{employerErrors.confirm_password.message}</p>
+                      )}
                     </div>
                   </div>
 
@@ -777,10 +854,7 @@ export default function SignupPage() {
 
                   <button
                     type="submit"
-                    disabled={
-                      isSubmitting || !fullName || !companyName || !businessType ||
-                      !registrationNumber || !country || !email || !password || !confirmPassword
-                    }
+                    disabled={isSubmitting}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-brand-gold text-black text-[13px] font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                   >
                     <Lock className="w-3.5 h-3.5" />

@@ -38,10 +38,12 @@ BEGIN
       VALUES (company_name)
       RETURNING id INTO company_id;
     END IF;
-
-    INSERT INTO public.company_members (user_id, company_id)
-    VALUES (new.id, company_id)
-    ON CONFLICT (user_id, company_id) DO NOTHING;
+    IF NOT EXISTS (
+      SELECT 1 FROM public.company_members WHERE user_id = new.id
+    ) THEN
+      INSERT INTO public.company_members (user_id, company_id)
+      VALUES (new.id, company_id);
+    END IF;
   END IF;
 
   RETURN new;

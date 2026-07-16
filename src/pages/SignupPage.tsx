@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase'
 
 type Step = 'choice' | 'applicant' | 'employer' | 'verify'
 
-const BUSINESS_TYPES = [
+export const BUSINESS_TYPES = [
   'Direct Employer',
   'Recruitment Agency',
   'Manpower Export Company',
@@ -23,7 +23,7 @@ const BUSINESS_TYPES = [
   'Other',
 ] as const
 
-const COUNTRIES = [
+export const COUNTRIES = [
   'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
   'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
   'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana',
@@ -53,7 +53,7 @@ const COUNTRIES = [
 ]
 
 // name + dialing code, used for the phone-number country-code select
-const COUNTRY_CODES: { name: string; code: string }[] = [
+export const COUNTRY_CODES: { name: string; code: string }[] = [
   { name: 'Afghanistan', code: '+93' }, { name: 'Albania', code: '+355' },
   { name: 'Algeria', code: '+213' }, { name: 'Andorra', code: '+376' },
   { name: 'Angola', code: '+244' }, { name: 'Antigua and Barbuda', code: '+1268' },
@@ -300,8 +300,41 @@ export default function SignupPage() {
       if (!authedUser) return // e.g. email verification pending — upload later from profile
       const ext = logoFile.name.split('.').pop()
       const path = `${authedUser.id}/logo.${ext}`
-      await supabase.storage.from('company-logos').upload(path, logoFile, { upsert: true })
-    } catch {
+      
+      // 1. Upload to storage
+      const { error: uploadErr } = await supabase.storage.from('company-logos').upload(path, logoFile, { upsert: true })
+      if (uploadErr) {
+        console.error('Logo upload error:', uploadErr)
+        return
+      }
+
+      // 2. Get public URL
+      const { data: { publicUrl } } = supabase.storage.from('company-logos').getPublicUrl(path)
+
+      // 3. Find company membership
+      const { data: memberData, error: memberErr } = await supabase
+        .from('company_members')
+        .select('company_id')
+        .eq('user_id', authedUser.id)
+        .maybeSingle()
+
+      if (memberErr) {
+        console.error('Error fetching company member row:', memberErr)
+        return
+      }
+
+      if (memberData?.company_id) {
+        // 4. Update the company row
+        const { error: updateErr } = await supabase
+          .from('companies')
+          .update({ logo_url: publicUrl })
+          .eq('id', memberData.company_id)
+        if (updateErr) {
+          console.error('Error updating company logo_url:', updateErr)
+        }
+      }
+    } catch (err) {
+      console.error('Silently skipped logo storage association:', err)
       // Silently skip — the employer can always add a logo from their profile settings later.
     }
   }

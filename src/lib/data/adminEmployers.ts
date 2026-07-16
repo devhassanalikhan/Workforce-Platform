@@ -23,7 +23,18 @@ const SHORTLISTED_MIN_STAGE = 4
 export interface AdminCompanyRow {
   id: string
   name: string
+  logo_url: string | null
   planTier: string
+  businessType: string | null
+  country: string | null
+  registrationNumber: string | null
+  registrationAuthority: string | null
+  companyAddress: string | null
+  companyWebsite: string | null
+  contactPerson: string | null
+  designation: string | null
+  phoneCountryCode: string | null
+  phoneNumber: string | null
   jobCount: number
   applicationCount: number
   shortlistedCount: number
@@ -40,11 +51,20 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
   // Query 1 — companies. plan_tier may not exist yet if that migration
   // hasn't been applied — fall back gracefully rather than erroring the
   // whole page.
-  let companies: { id: string; name: string; plan_tier?: string | null }[] = []
+  let companies: {
+    id: string; name: string; logo_url?: string | null; plan_tier?: string | null
+    business_type?: string | null; country?: string | null
+    registration_number?: string | null; registration_authority?: string | null
+    company_address?: string | null; company_website?: string | null
+    contact_person?: string | null; designation?: string | null
+    phone_country_code?: string | null; phone_number?: string | null
+  }[] = []
   {
-    const { data, error } = await supabase.from('companies').select('id, name, plan_tier')
+    const { data, error } = await supabase
+      .from('companies')
+      .select('id, name, logo_url, plan_tier, business_type, country, registration_number, registration_authority, company_address, company_website, contact_person, designation, phone_country_code, phone_number')
     if (error) {
-      // Likely because plan_tier doesn't exist yet — retry without it.
+      // Likely because new columns don't exist yet — fall back to basics.
       const fallback = await supabase.from('companies').select('id, name')
       companies = (fallback.data ?? []).map(c => ({ ...c, plan_tier: null }))
     } else {
@@ -80,7 +100,18 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
   return companies.map(c => ({
     id: c.id,
     name: c.name,
+    logo_url: c.logo_url ?? null,
     planTier: c.plan_tier ?? 'Not set',
+    businessType: c.business_type ?? null,
+    country: c.country ?? null,
+    registrationNumber: c.registration_number ?? null,
+    registrationAuthority: c.registration_authority ?? null,
+    companyAddress: c.company_address ?? null,
+    companyWebsite: c.company_website ?? null,
+    contactPerson: c.contact_person ?? null,
+    designation: c.designation ?? null,
+    phoneCountryCode: c.phone_country_code ?? null,
+    phoneNumber: c.phone_number ?? null,
     jobCount: jobCountByCompany.get(c.id) ?? 0,
     applicationCount: applicationCountByCompany.get(c.id) ?? 0,
     shortlistedCount: shortlistedCountByCompany.get(c.id) ?? 0,

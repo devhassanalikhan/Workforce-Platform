@@ -15,6 +15,7 @@ import {
   FileText,
   CheckCircle2,
   Clock,
+  Settings,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
@@ -23,6 +24,7 @@ import { getActiveJobOrder, getCompanyJobs, type CompanyJob } from '@/lib/data/e
 import { createCompany, joinCompany, deleteJob } from '@/lib/data/mutations'
 import JobFormDialog from '@/components/jobs/JobFormDialog'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import CompanySettingsDialog from '@/components/employers/CompanySettingsDialog'
 import type { ActiveJobOrder } from '@/types/domain'
 import { STAGE_LABELS, TOTAL_STAGES } from '@/lib/pipelineStages'
 
@@ -42,6 +44,8 @@ export default function EmployerPortal() {
   const [companyId,   setCompanyId]   = useState<string | null>(null)
   const [companyName, setCompanyName] = useState('')
   const [settingUp,   setSettingUp]   = useState(false)
+  const [company,     setCompany]     = useState<any | null>(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const [jobs,           setJobs]           = useState<CompanyJob[]>([])
   const [activeJobOrder, setActiveJobOrder] = useState<ActiveJobOrder | null>(null)
@@ -57,6 +61,17 @@ export default function EmployerPortal() {
     if (!user) return
     loadPortal()
   }, [user])
+
+  async function loadCompanyDetails(cId: string) {
+    const { data } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', cId)
+      .maybeSingle()
+    if (data) {
+      setCompany(data)
+    }
+  }
 
   async function loadPortal() {
     if (!user) return
@@ -75,6 +90,7 @@ export default function EmployerPortal() {
       const [jobsData, jobOrder] = await Promise.all([
         getCompanyJobs(cId),
         getActiveJobOrder(),
+        loadCompanyDetails(cId),
       ])
       setJobs(jobsData)
       setActiveJobOrder(jobOrder)
@@ -106,6 +122,7 @@ export default function EmployerPortal() {
     const [jobsData, jobOrder] = await Promise.all([
       getCompanyJobs(company.id),
       getActiveJobOrder(),
+      loadCompanyDetails(company.id),
     ])
     setJobs(jobsData)
     setActiveJobOrder(jobOrder)
@@ -162,21 +179,56 @@ export default function EmployerPortal() {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] block mb-1">
-              Employer Portal
-            </span>
-            <h1 className="text-2xl font-bold text-foreground">Job Management</h1>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4">
+            {/* Company Logo */}
+            {companyId && (
+              <div className="w-14 h-14 rounded-2xl border border-border bg-card flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
+                {company?.logo_url ? (
+                  <img
+                    src={company.logo_url}
+                    alt={company.name ?? 'Company logo'}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <Building2 className="w-7 h-7 text-muted-foreground/40" />
+                )}
+              </div>
+            )}
+            <div>
+              <span className="text-[11px] font-medium text-brand-gold uppercase tracking-[0.15em] block mb-0.5">
+                Employer Portal
+              </span>
+              <h1 className="text-2xl font-bold text-foreground">
+                {company?.name ?? 'Job Management'}
+              </h1>
+              {company?.country && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3" />
+                  {company.country}
+                  {company?.business_type && <span className="ml-2 px-1.5 py-0.5 rounded-full bg-muted border border-border text-[10px]">{company.business_type}</span>}
+                </p>
+              )}
+            </div>
           </div>
           {companyId && (
-            <button
-              onClick={openNew}
-              className="flex items-center gap-2 px-5 py-2.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
-            >
-              <Plus className="w-4 h-4" />
-              Post a Job
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-muted/60 hover:bg-muted border border-border rounded-xl text-sm font-semibold text-foreground transition-all"
+                title="Company Settings"
+              >
+                <Settings className="w-4 h-4 text-muted-foreground" />
+                Company Settings
+              </button>
+              <button
+                onClick={openNew}
+                className="flex items-center gap-2 px-5 py-2.5 bg-brand-gold text-navy-950 rounded-xl text-sm font-semibold hover:bg-brand-gold-light transition-all shadow-glow"
+              >
+                <Plus className="w-4 h-4" />
+                Post a Job
+              </button>
+            </div>
           )}
         </div>
 
@@ -450,6 +502,16 @@ export default function EmployerPortal() {
         confirmVariant="danger"
         onConfirm={handleDeleteConfirm}
         isLoading={deleting}
+      />
+
+      {/* Company Settings Dialog */}
+      <CompanySettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        company={company}
+        onSuccess={() => {
+          if (companyId) loadCompanyDetails(companyId)
+        }}
       />
     </div>
   )

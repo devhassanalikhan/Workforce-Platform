@@ -98,7 +98,7 @@ Tasks:
 
 ---
 
-### 6. Modularize SignupPage.tsx Subcomponents   [REMAINING]
+### 6. Modularize SignupPage.tsx Subcomponents   [DONE]
 **Target**: `src/pages/SignupPage.tsx`
 
 ```text

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="talentBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16324A" />
+      <stop offset="100%" stop-color="#0E1F30" />
+    </linearGradient>
+    <linearGradient id="talentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3DBFB0" />
+      <stop offset="100%" stop-color="#1F7A6E" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#talentBg)" />
+  <circle cx="200" cy="118" r="46" fill="url(#talentGrad)" fill-opacity="0.18" />
+  <circle cx="200" cy="110" r="34" fill="none" stroke="url(#talentGrad)" stroke-width="3" />
+  <path d="M128 232c10-46 54-70 72-70s62 24 72 70" fill="none" stroke="url(#talentGrad)" stroke-width="3" stroke-linecap="round" />
+</svg>

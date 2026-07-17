@@ -16,7 +16,7 @@ function mapTalentRow(row: TalentRow): TalentProfile {
   return {
     id: row.id,
     name: row.name,
-    photo: row.photo_url ?? '/images/talent-placeholder.jpg',
+    photo: row.photo_url ?? '/images/talent-placeholder.svg',
     role: row.role_title,
     location: row.location,
     experience: `${row.experience_years} years`,

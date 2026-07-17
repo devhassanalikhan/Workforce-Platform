@@ -22,7 +22,7 @@ function mapRow(row: ArticleRow): Article {
     id: row.id,
     title: row.title,
     excerpt: row.excerpt ?? '',
-    image: row.image_url ?? '/images/blog-placeholder.jpg',
+    image: row.image_url ?? '/images/blog-placeholder.svg',
     category: row.category ?? '',
     readTime: row.read_time ?? '',
     date: formatDate(row.published_at),

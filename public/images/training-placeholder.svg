@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" width="400" height="225">
+  <defs>
+    <linearGradient id="trainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B2A3D" />
+      <stop offset="100%" stop-color="#0E1826" />
+    </linearGradient>
+    <linearGradient id="trainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C84A" />
+      <stop offset="100%" stop-color="#B8820F" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="225" fill="url(#trainBg)" />
+  <g transform="translate(200 112.5)" fill="none" stroke="url(#trainGrad)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M-60 -8 0 -34 60 -8 0 18 -60 -8Z" />
+    <path d="M-34 4v26c0 8 15 16 34 16s34-8 34-16V4" />
+    <path d="M60 -8v30" />
+  </g>
+</svg>

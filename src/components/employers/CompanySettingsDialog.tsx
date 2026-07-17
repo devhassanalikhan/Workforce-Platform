@@ -6,7 +6,7 @@ import { X, Loader2, Building2, Upload } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
-import { BUSINESS_TYPES, COUNTRIES, COUNTRY_CODES } from '@/pages/SignupPage'
+import { BUSINESS_TYPES, COUNTRIES, COUNTRY_CODES } from '@/lib/signupConstants'
 
 interface CompanyDetails {
   id: string

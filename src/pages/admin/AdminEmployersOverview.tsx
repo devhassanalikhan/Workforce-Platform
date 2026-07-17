@@ -87,7 +87,7 @@ export default function AdminEmployersOverview() {
       setSelectedApplicant({
         id: 'temp-' + Math.random(),
         name,
-        photo: '/images/talent-placeholder.jpg',
+        photo: '/images/talent-placeholder.svg',
         role: 'Applicant',
         location: 'Not specified',
         experience: '0 years',

@@ -29,7 +29,7 @@ function mapRow(row: CourseRow): Course {
     id: row.id,
     title: row.title,
     category: row.category,
-    image: row.image_url ?? '/images/training-placeholder.jpg',
+    image: row.image_url ?? '/images/training-placeholder.svg',
     duration: row.duration ?? '',
     level: row.level ?? '',
     enrolled: row.enrolled_count,

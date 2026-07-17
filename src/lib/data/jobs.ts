@@ -34,7 +34,7 @@ function mapRow(row: JobRow): Job {
     id: row.id,
     title: row.title,
     company: row.companies?.name ?? 'Unknown Company',
-    logo: row.companies?.logo_url ?? '/images/logo-placeholder.png',
+    logo: row.companies?.logo_url ?? '/images/logo-placeholder.svg',
     location: row.location,
     destinationCountry: row.destination_country,
     destinationCity: row.destination_city,

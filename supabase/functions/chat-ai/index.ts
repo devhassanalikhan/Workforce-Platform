@@ -8,7 +8,10 @@
 //   POST /functions/v1/chat-ai   (called via supabase.functions.invoke('chat-ai'))
 //   Public — the AI Assistant page is open to guests, so no role restriction.
 
-const MODEL = 'gemini-2.5-flash'
+// 'gemini-flash-latest' is Google's rolling alias for the current stable
+// flash model — avoids hardcoding a version string that gets deprecated
+// (gemini-2.5-flash stopped being available to this account's key).
+const MODEL = 'gemini-flash-latest'
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`
 
 const SYSTEM_PROMPT = `You are the WorkforceX AI Mobility Assistant, embedded in a platform that connects

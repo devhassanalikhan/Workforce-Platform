@@ -130,7 +130,7 @@ Tasks:
 
 ## Low Priority Tasks
 
-### 8. Integrate AI Assistant with Secure LLM Edge Function Proxy   [REMAINING]
+### 8. Integrate AI Assistant with Secure LLM Edge Function Proxy   [DONE]
 **Target**: `src/pages/AiAssistant.tsx` & Supabase Edge Functions
 
 ```text

@@ -4,29 +4,15 @@ import { supabase } from '@/lib/supabase'
 import { mockActiveJobOrder } from '@/data/mockActiveJobOrder'
 import type { ActiveJobOrder, ComplianceItem } from '@/types/domain'
 import { initialsOf } from '@/lib/initials'
+import type { Database } from '@/types/supabase'
 
-export interface CompanyJob {
-  id: string
-  title: string
-  location: string
-  destination_country: string | null
-  destination_city: string | null
-  visa_status: string | null
-  contract_duration: string | null
-  oep_license_no: string | null
-  benefits: string[]
-  salary_min: number | null
-  salary_max: number | null
-  salary_frequency: string
-  currency: string
-  employment_type: string
-  category: string
-  experience_level: string
-  description: string
-  requirements: string[]
-  is_hot: boolean
-  posted_at: string
-}
+export type CompanyJob = Pick<
+  Database['public']['Tables']['jobs']['Row'],
+  | 'id' | 'title' | 'location' | 'destination_country' | 'destination_city' | 'visa_status'
+  | 'contract_duration' | 'oep_license_no' | 'benefits' | 'salary_min' | 'salary_max'
+  | 'salary_frequency' | 'currency' | 'employment_type' | 'category' | 'experience_level'
+  | 'description' | 'requirements' | 'is_hot' | 'posted_at'
+>
 
 export async function getCompanyJobs(companyId: string): Promise<CompanyJob[]> {
   const { data, error } = await supabase
@@ -39,17 +25,15 @@ export async function getCompanyJobs(companyId: string): Promise<CompanyJob[]> {
   return data as CompanyJob[]
 }
 
-interface PlacementWithJoinsRow {
-  id: string
-  job_order_code: string
-  ai_readiness_score: number | null
-  stage: number
-  talent_profiles: { name: string; location: string } | null
-  jobs: { title: string; location: string } | null
+type PlacementWithJoinsRow = Pick<
+  Database['public']['Tables']['placements']['Row'],
+  'id' | 'job_order_code' | 'ai_readiness_score' | 'stage'
+> & {
+  talent_profiles: Pick<Database['public']['Tables']['talent_profiles']['Row'], 'name' | 'location'> | null
+  jobs: Pick<Database['public']['Tables']['jobs']['Row'], 'title' | 'location'> | null
 }
 
-interface ComplianceItemRow {
-  label: string
+type ComplianceItemRow = Pick<Database['public']['Tables']['compliance_checklist_items']['Row'], 'label'> & {
   status: 'complete' | 'pending' | 'flagged'
 }
 
@@ -72,7 +56,7 @@ export async function getActiveJobOrder(): Promise<ActiveJobOrder> {
     return mockActiveJobOrder
   }
 
-  const row = placement as unknown as PlacementWithJoinsRow
+  const row = placement as PlacementWithJoinsRow
 
   const { data: complianceRows } = await supabase
     .from('compliance_checklist_items')

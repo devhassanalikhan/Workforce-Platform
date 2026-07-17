@@ -23,7 +23,7 @@ Create a new migration script in `supabase/migrations/` that performs the follow
 
 ---
 
-### 2. Refactor SignupPage Form Validation with Zod & React Hook Form
+### 2. Refactor SignupPage Form Validation with Zod & React Hook Form   [DONE]
 **Target**: `src/pages/SignupPage.tsx`
 
 ```text
@@ -41,7 +41,7 @@ Specifically:
 
 ---
 
-### 3. Refactor JobApplicationForm with Zod & React Hook Form
+### 3. Refactor JobApplicationForm with Zod & React Hook Form   [DONE]
 **Target**: `src/components/jobs/JobApplicationForm.tsx`
 
 ```text
@@ -64,7 +64,7 @@ Tasks:
 
 ---
 
-### 4. Implement a Global React Error Boundary
+### 4. Implement a Global React Error Boundary   [DONE]
 **Target**: `src/main.tsx` & `src/components/guards/ErrorBoundary.tsx`
 
 ```text
@@ -84,7 +84,7 @@ Steps:
 
 ## Medium Priority Tasks
 
-### 5. Generate Supabase Database TypeScript Type Definitions
+### 5. Generate Supabase Database TypeScript Type Definitions   [DONE]
 **Target**: `src/types/supabase.ts` & Data Layer
 
 ```text
@@ -98,7 +98,7 @@ Tasks:
 
 ---
 
-### 6. Modularize SignupPage.tsx Subcomponents
+### 6. Modularize SignupPage.tsx Subcomponents   [REMAINING]
 **Target**: `src/pages/SignupPage.tsx`
 
 ```text
@@ -114,7 +114,7 @@ Move sections into separate files:
 
 ---
 
-### 7. Optimize and Audit Missing Assets
+### 7. Optimize and Audit Missing Assets   [REMAINING]
 **Target**: Public Assets & Image Placeholders
 
 ```text
@@ -130,7 +130,7 @@ Tasks:
 
 ## Low Priority Tasks
 
-### 8. Integrate AI Assistant with Secure LLM Edge Function Proxy
+### 8. Integrate AI Assistant with Secure LLM Edge Function Proxy   [REMAINING]
 **Target**: `src/pages/AiAssistant.tsx` & Supabase Edge Functions
 
 ```text
@@ -144,7 +144,7 @@ Steps:
 
 ---
 
-### 9. Implement Pagination & Search Virtualization on Jobs/Talent Pools
+### 9. Implement Pagination & Search Virtualization on Jobs/Talent Pools   [REMAINING]
 **Target**: `src/pages/JobsMarketplace.tsx` and `src/pages/TalentPool.tsx`
 
 ```text

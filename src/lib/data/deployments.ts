@@ -2,28 +2,27 @@ import { supabase } from '@/lib/supabase'
 import { mockDeployedWorkers } from '@/data/mockDeployedWorkers'
 import { initialsOf } from '@/lib/initials'
 import type { DeployedWorker, GrievanceSeverity, WorkerStatus } from '@/types/domain'
+import type { Database } from '@/types/supabase'
 
-interface DeploymentRow {
-  id: string
+type DeploymentRow = Pick<
+  Database['public']['Tables']['deployments']['Row'],
+  'id' | 'deployed_date' | 'last_check_in' | 'next_check_in' | 'escrow_balance'
+  | 'escrow_currency' | 'wellbeing_score'
+> & {
   status: WorkerStatus
-  deployed_date: string | null
-  last_check_in: string | null
-  next_check_in: string | null
-  escrow_balance: number
-  escrow_currency: string
-  wellbeing_score: number | null
-  placements: {
-    job_order_code: string
-    talent_profiles: { name: string } | null
-    jobs: { title: string; location: string; companies: { name: string } | null } | null
-  } | null
+  placements: (Pick<Database['public']['Tables']['placements']['Row'], 'job_order_code'> & {
+    talent_profiles: Pick<Database['public']['Tables']['talent_profiles']['Row'], 'name'> | null
+    jobs: (Pick<Database['public']['Tables']['jobs']['Row'], 'title' | 'location'> & {
+      companies: Pick<Database['public']['Tables']['companies']['Row'], 'name'> | null
+    }) | null
+  }) | null
 }
 
-interface GrievanceRow {
-  deployment_id: string
+type GrievanceRow = Pick<
+  Database['public']['Tables']['grievances']['Row'],
+  'deployment_id' | 'summary' | 'opened_at'
+> & {
   severity: GrievanceSeverity
-  summary: string
-  opened_at: string
 }
 
 // Job/company location strings in this project are consistently stored as
@@ -58,7 +57,7 @@ export async function getDeployedWorkers(): Promise<DeployedWorker[]> {
     return mockDeployedWorkers
   }
 
-  const rows = deployments as unknown as DeploymentRow[]
+  const rows = deployments as DeploymentRow[]
 
   const { data: grievanceRows } = await supabase
     .from('grievances')

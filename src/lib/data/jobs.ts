@@ -3,38 +3,10 @@
 import { supabase } from '@/lib/supabase'
 import { mockJobs } from '@/data/mockJobs'
 import type { Job } from '@/types/domain'
+import type { Database } from '@/types/supabase'
 
-interface JobRow {
-  id: string
-  title: string
-  location: string
-  destination_country: string | null
-  destination_city: string | null
-  visa_status: string | null
-  contract_duration: string | null
-  oep_license_no: string | null
-  benefits: string[] | null
-  salary_min: number | null
-  salary_max: number | null
-  salary_frequency: string | null
-  currency: string
-  employment_type: string
-  category: string
-  experience_level: string
-  description: string | null
-  requirements: string[]
-  is_hot: boolean
-  posted_at: string
-  companies: { name: string; logo_url: string | null } | null
-  published_on?: string | null
-  job_nature?: string | null
-  project?: string | null
-  age_limit?: string | null
-  field_of_work?: string | null
-  available_till?: string | null
-  qualifications?: string | null
-  note?: string | null
-  terms_applied?: boolean
+type JobRow = Database['public']['Tables']['jobs']['Row'] & {
+  companies: Pick<Database['public']['Tables']['companies']['Row'], 'name' | 'logo_url'> | null
 }
 
 function formatSalary(
@@ -82,7 +54,7 @@ function mapRow(row: JobRow): Job {
     // show 0 until that's wired up.
     aiMatch: 0,
     saved: false,
-    hot: row.is_hot,
+    hot: row.is_hot ?? false,
     publishedOn: row.published_on,
     jobNature: row.job_nature,
     project: row.project,
@@ -91,7 +63,7 @@ function mapRow(row: JobRow): Job {
     availableTill: row.available_till,
     qualifications: row.qualifications,
     note: row.note,
-    termsApplied: row.terms_applied,
+    termsApplied: row.terms_applied ?? undefined,
   }
 }
 
@@ -102,7 +74,7 @@ export async function getSavedJobIds(userId: string): Promise<Set<string>> {
     .select('job_id')
     .eq('user_id', userId)
 
-  return new Set(((data ?? []) as { job_id: string }[]).map(r => r.job_id))
+  return new Set((data ?? []).map(r => r.job_id))
 }
 
 // Returns the set of job IDs the applicant has already applied to (i.e. has
@@ -116,7 +88,7 @@ export async function getAppliedJobIds(userId: string): Promise<Set<string>> {
     .eq('talent_id', userId)
 
   if (error || !data) return new Set()
-  return new Set((data as { job_id: string }[]).map(r => r.job_id))
+  return new Set(data.map(r => r.job_id).filter((id): id is string => id != null))
 }
 
 // Falls back to bundled demo listings whenever the live `jobs` table has no
@@ -133,5 +105,5 @@ export async function getJobs(): Promise<Job[]> {
     return mockJobs
   }
 
-  return (data as unknown as JobRow[]).map(mapRow)
+  return (data as JobRow[]).map(mapRow)
 }

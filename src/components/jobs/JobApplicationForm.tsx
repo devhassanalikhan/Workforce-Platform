@@ -178,26 +178,29 @@ export default function JobApplicationForm({ job, userId, onSubmitSuccess, onCan
         .maybeSingle()
       if (data) {
         setProfile(data)
+        // DB columns are plain strings; the values were only ever written by
+        // this same Zod-validated form, so they already conform to the
+        // narrower literal unions below.
         reset({
           name: data.name ?? '',
-          gender: data.gender ?? undefined,
+          gender: (data.gender ?? undefined) as ApplicationFormValues['gender'],
           date_of_birth: data.date_of_birth ?? '',
           cnic: data.cnic ?? '',
-          city: data.city ?? undefined,
+          city: (data.city ?? undefined) as ApplicationFormValues['city'],
           phone: data.phone ?? '',
           email: data.email ?? user?.email ?? '',
-          category: data.category ?? undefined,
-          qualification: data.qualification ?? undefined,
-          field_of_work: data.field_of_work ?? undefined,
+          category: (data.category ?? undefined) as ApplicationFormValues['category'],
+          qualification: (data.qualification ?? undefined) as ApplicationFormValues['qualification'],
+          field_of_work: (data.field_of_work ?? undefined) as ApplicationFormValues['field_of_work'],
           experience_years: data.experience_years != null ? String(data.experience_years) : '',
           relevant_experience_years:
             data.relevant_experience_years != null
               ? String(data.relevant_experience_years)
               : '',
-          foreign_experience: data.foreign_experience ?? undefined,
-          driving_license: data.driving_license ?? undefined,
-          has_certification: data.has_certification ?? undefined,
-          height: data.height ?? undefined,
+          foreign_experience: (data.foreign_experience ?? undefined) as ApplicationFormValues['foreign_experience'],
+          driving_license: (data.driving_license ?? undefined) as ApplicationFormValues['driving_license'],
+          has_certification: (data.has_certification ?? undefined) as ApplicationFormValues['has_certification'],
+          height: (data.height ?? undefined) as ApplicationFormValues['height'],
         })
       }
       setLoadingProfile(false)

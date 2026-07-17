@@ -2,23 +2,19 @@ import { supabase } from '@/lib/supabase'
 import { mockPlacementCandidates } from '@/data/mockPlacementCandidates'
 import { initialsOf } from '@/lib/initials'
 import type { ChecklistStatus, PlacementCandidate } from '@/types/domain'
+import type { Database } from '@/types/supabase'
 
-interface PlacementRow {
-  id: string
-  job_order_code: string
-  talent_profiles: { name: string } | null
-  jobs: { title: string; location: string } | null
-  companies: { name: string } | null
+type PlacementRow = Pick<Database['public']['Tables']['placements']['Row'], 'id' | 'job_order_code'> & {
+  talent_profiles: Pick<Database['public']['Tables']['talent_profiles']['Row'], 'name'> | null
+  jobs: Pick<Database['public']['Tables']['jobs']['Row'], 'title' | 'location'> | null
+  companies: Pick<Database['public']['Tables']['companies']['Row'], 'name'> | null
 }
 
-interface ComplianceItemRow {
-  placement_id: string
-  item_key: string
-  label: string
-  sublabel: string | null
+type ComplianceItemRow = Pick<
+  Database['public']['Tables']['compliance_checklist_items']['Row'],
+  'placement_id' | 'item_key' | 'label' | 'sublabel' | 'detail' | 'gamca_approved'
+> & {
   status: ChecklistStatus
-  detail: string | null
-  gamca_approved: boolean
 }
 
 // Falls back to bundled demo candidates whenever there are no live Stage 5
@@ -39,7 +35,7 @@ export async function getPlacementCandidates(): Promise<PlacementCandidate[]> {
     return mockPlacementCandidates
   }
 
-  const rows = placements as unknown as PlacementRow[]
+  const rows = placements as PlacementRow[]
   const placementIds = rows.map(r => r.id)
 
   const { data: checklistRows } = await supabase

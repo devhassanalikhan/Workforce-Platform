@@ -1,43 +1,15 @@
 import { supabase } from '@/lib/supabase'
 import { mockTalent } from '@/data/mockTalent'
 import type { TalentProfile } from '@/types/domain'
+import type { Database } from '@/types/supabase'
 
-interface TalentRow {
-  id: string
-  name: string
-  photo_url: string | null
-  role_title: string
-  location: string
-  experience_years: number
-  skills: string[]
-  languages: string[]
-  certifications: string[]
-  verified: boolean
-  available: boolean
-  badge: string | null
-  // OES-style applicant demographic fields
-  gender?: string | null
-  date_of_birth?: string | null
-  cnic?: string | null
-  city?: string | null
-  phone?: string | null
-  email?: string | null
-  category?: string | null
-  qualification?: string | null
-  field_of_work?: string | null
-  relevant_experience_years?: number | null
-  foreign_experience?: string | null
-  driving_license?: string | null
-  has_certification?: string | null
-  height?: string | null
-}
+type TalentRow = Database['public']['Tables']['talent_profiles']['Row']
 
-interface PlacementRow {
-  talent_id: string
-  ai_readiness_score: number | null
-  stage: number
-  job_order_code: string
-  jobs: { title: string; location: string } | null
+type PlacementRow = Pick<
+  Database['public']['Tables']['placements']['Row'],
+  'talent_id' | 'ai_readiness_score' | 'stage' | 'job_order_code'
+> & {
+  jobs: Pick<Database['public']['Tables']['jobs']['Row'], 'title' | 'location'> | null
 }
 
 function mapTalentRow(row: TalentRow): TalentProfile {
@@ -104,7 +76,7 @@ export async function getTalent(canSeePrivateFields: boolean): Promise<TalentPro
   }
 
   const placementByTalent = new Map(
-    (placements as unknown as PlacementRow[]).map(p => [p.talent_id, p])
+    (placements as PlacementRow[]).map(p => [p.talent_id, p])
   )
 
   return talents.map(t => {

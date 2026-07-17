@@ -16,6 +16,7 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { supabase } from '@/lib/supabase'
 
 interface Message {
   id: number
@@ -70,19 +71,10 @@ const features = [
   },
 ]
 
-const mockResponses: Record<string, string> = {
-  'What construction jobs are available in the UAE for someone with 5 years of site management experience?':
-    "Based on your experience, I found several excellent opportunities in the UAE:\n\n**Top Matches:**\n1. **Senior Construction Supervisor** at Al Rashid Group - Dubai ($3,500-$4,500/mo) - 94% match\n2. **Site Manager** at EMAR Properties - Abu Dhabi ($4,000-$5,500/mo) - 91% match\n3. **Project Coordinator** at Arabtec Construction - Dubai ($3,200-$4,200/mo) - 88% match\n\nYour 5 years of site management experience qualifies you for senior roles. I recommend applying to the first two positions as they offer the best compensation and have excellent employer ratings on our platform.\n\nWould you like me to help you prepare your application or check what additional certifications might boost your profile?",
-
-  'What documents do I need to prepare for a work visa application to Germany as a nurse?':
-    "For a German work visa as a nurse, you will need these documents:\n\n**Required Documents:**\n- Valid passport (minimum 6 months validity)\n- Anerkennung (recognition) of your nursing qualification from German authorities\n- B2 level German language certificate (Goethe/Telc)\n- Employment contract from a German healthcare facility\n- Proof of professional liability insurance\n- Clean criminal record certificate\n- Health clearance certificate\n\n**Processing Timeline:** 8-12 weeks\n\n**Pro Tip:** Start the Anerkennung process early - it can take 3-6 months. Our training partner offers a B2 German course specifically for healthcare workers.\n\nWould you like me to connect you with our visa documentation support team?",
-
-  'Which countries have the highest demand for IT professionals right now and what salaries can I expect?':
-    "Here is the current demand landscape for IT professionals:\n\n**Highest Demand Markets (2025):**\n1. **Germany** - 12,400 open positions - 50,000-85,000 EUR/year\n2. **Canada** - 8,900 open positions - CAD 65,000-110,000/year\n3. **UAE** - 6,700 open positions - $45,000-95,000/year\n4. **Australia** - 5,200 open positions - AUD 75,000-130,000/year\n5. **Japan** - 4,800 open positions - JPY 5,000,000-10,000,000/year\n\n**Trending Specializations:**\n- Cloud Architecture (+34% YoY)\n- Cybersecurity (+28% YoY)\n- AI/ML Engineering (+41% YoY)\n- DevOps (+22% YoY)\n\nGermany and Canada currently have the fastest visa processing for IT workers. Would you like a personalized assessment based on your specific tech stack?",
-
-  'What cultural differences should I be aware of when working in Japan as a foreigner?':
-    "Great question! Japan has a unique workplace culture. Here are key things to know:\n\n**Workplace Culture:**\n- **Punctuality** is extremely important - arrive 10-15 minutes early\n- **Hierarchy** matters - show respect to senior colleagues (senpai/kohai system)\n- **Consensus-building** (nemawashi) is preferred over direct confrontation\n- **Overtime culture** exists but is improving with new labor laws\n\n**Social Etiquette:**\n- Bow when greeting (slight nod is fine for foreigners)\n- Exchange business cards with both hands\n- Remove shoes when entering homes and some offices\n- Avoid loud phone conversations on public transport\n\n**Practical Tips:**\n- Learn basic Japanese phrases - effort is highly appreciated\n- Join company social events (nomikai) - important for bonding\n- Healthcare is excellent but learn the clinic system\n\nOur pre-departure program includes a 2-week cultural orientation. Would you like to enroll?",
-}
+// How long to wait for the assistant before showing a timeout message. The
+// underlying request isn't cancelled (functions.invoke has no abort hook in
+// the installed supabase-js version) — this just bounds how long the UI waits.
+const RESPONSE_TIMEOUT_MS = 30_000
 
 export default function AiAssistant() {
   const [messages, setMessages] = useState<Message[]>([
@@ -117,25 +109,43 @@ export default function AiAssistant() {
       timestamp: new Date(),
     }
 
-    setMessages(prev => [...prev, userMsg])
+    const history = [...messages, userMsg]
+    setMessages(history)
     setInput('')
     setIsTyping(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const response =
-        mockResponses[text] ||
-        `Thank you for your question about "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}". \n\nI'm analyzing your query against our global job database and training resources. Here's what I found:\n\nBased on current market data, I recommend exploring opportunities in the GCC region and Europe, which show the strongest demand patterns for your profile. Our platform has 2,400+ verified positions that match similar queries.\n\nWould you like me to:\n1. Show specific job listings\n2. Recommend training programs\n3. Provide visa guidance\n4. Connect you with a mobility counselor`
+    let replyContent: string
+    try {
+      const { data, error } = await Promise.race([
+        supabase.functions.invoke<{ reply?: string; error?: string }>('chat-ai', {
+          body: {
+            messages: history.map(({ role, content }) => ({ role, content })),
+          },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), RESPONSE_TIMEOUT_MS)
+        ),
+      ])
 
-      const assistantMsg: Message = {
-        id: messages.length + 2,
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, assistantMsg])
-      setIsTyping(false)
-    }, 1500)
+      if (error) throw error
+      if (!data?.reply) throw new Error(data?.error ?? 'Empty response')
+
+      replyContent = data.reply
+    } catch (err) {
+      replyContent =
+        err instanceof Error && err.message === 'timeout'
+          ? "That's taking longer than expected — the assistant may be busy. Please try again in a moment."
+          : "I ran into a problem reaching the assistant just now. Please try again — if this keeps happening, contact support."
+    }
+
+    const assistantMsg: Message = {
+      id: history.length + 1,
+      role: 'assistant',
+      content: replyContent,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, assistantMsg])
+    setIsTyping(false)
   }
 
   const handlePromptClick = (prompt: string) => {
@@ -173,7 +183,7 @@ export default function AiAssistant() {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 border border-border">
                 <Zap className="w-3.5 h-3.5 text-brand-gold" />
                 <span className="text-[11px] text-muted-foreground">
-                  GPT-4 Powered
+                  Gemini-Powered
                 </span>
               </div>
             </div>

@@ -31,9 +31,9 @@ interface ExistingJob {
   employment_type: string
   category: string
   experience_level: string
-  description: string
+  description: string | null
   requirements: string[]
-  is_hot: boolean
+  is_hot: boolean | null
 }
 
 interface Props {
@@ -96,9 +96,9 @@ export default function JobFormDialog({ open, onOpenChange, companyId, job, onSu
           employment_type: job.employment_type,
           category: job.category,
           experience_level: job.experience_level,
-          description: job.description,
+          description: job.description ?? '',
           requirements: [...job.requirements],
-          is_hot: job.is_hot,
+          is_hot: job.is_hot ?? false,
         })
       } else {
         setForm(EMPTY)

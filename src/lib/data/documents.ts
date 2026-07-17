@@ -43,9 +43,9 @@ export async function uploadApplicantDocument(
 
     if (insertError) return { error: insertError.message }
 
-    return { documentId: (docData as any).id, filePath }
-  } catch (err: any) {
-    return { error: err?.message ?? String(err) }
+    return { documentId: docData.id, filePath }
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) }
   }
 }
 

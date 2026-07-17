@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { ChecklistStatus } from '@/types/domain'
+import type { Database } from '@/types/supabase'
 
 export interface DashboardProfile {
   name: string
@@ -40,34 +41,25 @@ export interface DashboardData {
   checklist: DashboardChecklistItem[]
 }
 
-interface ProfileRow {
-  name: string
-  role_title: string
-  location: string
-  experience_years: number
-  skills: string[]
-  languages: string[]
-  certifications: string[]
-  available: boolean
-  photo_url: string | null
+type ProfileRow = Pick<
+  Database['public']['Tables']['talent_profiles']['Row'],
+  'name' | 'role_title' | 'location' | 'experience_years' | 'skills' | 'languages'
+  | 'certifications' | 'available' | 'photo_url'
+>
+
+type PlacementRow = Pick<
+  Database['public']['Tables']['placements']['Row'],
+  'id' | 'stage' | 'job_order_code'
+> & {
+  jobs: (Pick<Database['public']['Tables']['jobs']['Row'], 'title' | 'location' | 'requirements'> & {
+    companies: Pick<Database['public']['Tables']['companies']['Row'], 'name'> | null
+  }) | null
 }
 
-interface PlacementRow {
-  id: string
-  stage: number
-  job_order_code: string
-  jobs: { title: string; location: string; requirements: string[] | null; companies: { name: string } | null } | null
-}
-
-interface ChecklistRow {
-  id: string
-  item_key: string
-  label: string
-  sublabel: string | null
-  status: string
-  detail: string | null
-  gamca_approved: boolean
-}
+type ChecklistRow = Pick<
+  Database['public']['Tables']['compliance_checklist_items']['Row'],
+  'id' | 'item_key' | 'label' | 'sublabel' | 'status' | 'detail' | 'gamca_approved'
+>
 
 export async function getDashboardData(userId: string): Promise<DashboardData> {
   const [profileResult, placementResult] = await Promise.all([
@@ -103,7 +95,7 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     return { profile, placement: null, checklist: [] }
   }
 
-  const row = placementResult.data as unknown as PlacementRow
+  const row = placementResult.data as PlacementRow
   const placement: DashboardPlacement = {
     id: row.id,
     stage: row.stage,

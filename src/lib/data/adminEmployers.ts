@@ -10,6 +10,7 @@
 import { supabase } from '@/lib/supabase'
 import { getCompanyJobs, type CompanyJob } from '@/lib/data/employer'
 import { initialsOf } from '@/lib/initials'
+import type { Database } from '@/types/supabase'
 
 // Stage at which a candidate is considered "shortlisted" for the admin
 // overview counts. NOTE: EmployerPortal.tsx's "Shortlist" label in its
@@ -40,9 +41,8 @@ export interface AdminCompanyRow {
   shortlistedCount: number
 }
 
-interface PlacementStageRow {
-  stage: number
-  jobs: { company_id: string } | null
+type PlacementStageRow = Pick<Database['public']['Tables']['placements']['Row'], 'stage'> & {
+  jobs: Pick<Database['public']['Tables']['jobs']['Row'], 'company_id'> | null
 }
 
 // Two queries total (not N+1): one for companies + job counts, one for all
@@ -51,14 +51,12 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
   // Query 1 — companies. plan_tier may not exist yet if that migration
   // hasn't been applied — fall back gracefully rather than erroring the
   // whole page.
-  let companies: {
-    id: string; name: string; logo_url?: string | null; plan_tier?: string | null
-    business_type?: string | null; country?: string | null
-    registration_number?: string | null; registration_authority?: string | null
-    company_address?: string | null; company_website?: string | null
-    contact_person?: string | null; designation?: string | null
-    phone_country_code?: string | null; phone_number?: string | null
-  }[] = []
+  let companies: Pick<
+    Database['public']['Tables']['companies']['Row'],
+    | 'id' | 'name' | 'logo_url' | 'plan_tier' | 'business_type' | 'country'
+    | 'registration_number' | 'registration_authority' | 'company_address' | 'company_website'
+    | 'contact_person' | 'designation' | 'phone_country_code' | 'phone_number'
+  >[] = []
   {
     const { data, error } = await supabase
       .from('companies')
@@ -66,7 +64,13 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
     if (error) {
       // Likely because new columns don't exist yet — fall back to basics.
       const fallback = await supabase.from('companies').select('id, name')
-      companies = (fallback.data ?? []).map(c => ({ ...c, plan_tier: null }))
+      companies = (fallback.data ?? []).map(c => ({
+        ...c,
+        logo_url: null, plan_tier: null, business_type: null, country: null,
+        registration_number: null, registration_authority: null, company_address: null,
+        company_website: null, contact_person: null, designation: null,
+        phone_country_code: null, phone_number: null,
+      }))
     } else {
       companies = data ?? []
     }
@@ -75,7 +79,8 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
   // Query 2 — job counts per company.
   const { data: jobRows } = await supabase.from('jobs').select('id, company_id')
   const jobCountByCompany = new Map<string, number>()
-  for (const j of (jobRows ?? []) as { id: string; company_id: string }[]) {
+  for (const j of jobRows ?? []) {
+    if (!j.company_id) continue
     jobCountByCompany.set(j.company_id, (jobCountByCompany.get(j.company_id) ?? 0) + 1)
   }
 
@@ -88,7 +93,7 @@ export async function getAdminCompanyOverview(): Promise<AdminCompanyRow[]> {
 
   const applicationCountByCompany = new Map<string, number>()
   const shortlistedCountByCompany = new Map<string, number>()
-  for (const p of (placementRows ?? []) as unknown as PlacementStageRow[]) {
+  for (const p of (placementRows ?? []) as PlacementStageRow[]) {
     const companyId = p.jobs?.company_id
     if (!companyId) continue
     applicationCountByCompany.set(companyId, (applicationCountByCompany.get(companyId) ?? 0) + 1)
@@ -135,12 +140,15 @@ export interface AdminApplicationRow {
   appliedAt: string
 }
 
-interface AdminApplicationJoinRow {
-  id: string
-  stage: number
-  created_at: string
-  jobs: { title: string } | null
-  talent_profiles: { name: string; role_title: string | null; location: string | null } | null
+type AdminApplicationJoinRow = Pick<
+  Database['public']['Tables']['placements']['Row'],
+  'id' | 'stage' | 'created_at'
+> & {
+  jobs: Pick<Database['public']['Tables']['jobs']['Row'], 'title'> | null
+  talent_profiles: Pick<
+    Database['public']['Tables']['talent_profiles']['Row'],
+    'name' | 'role_title' | 'location'
+  > | null
 }
 
 // Full-detail applications list for one company — admin only, unrestricted
@@ -154,7 +162,7 @@ export async function getAdminCompanyApplications(companyId: string): Promise<Ad
 
   if (error || !data) return []
 
-  return (data as unknown as AdminApplicationJoinRow[]).map(row => ({
+  return (data as AdminApplicationJoinRow[]).map(row => ({
     id: row.id,
     jobTitle: row.jobs?.title ?? 'Unknown Job',
     stage: row.stage,

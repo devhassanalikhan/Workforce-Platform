@@ -1,6 +1,6 @@
 // src/pages/JobsMarketplace.tsx
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Search,
   SlidersHorizontal,
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { useAuth } from '@/contexts/AuthContext'
 import { hasRole } from '@/lib/rbac'
 import { getJobs, getSavedJobIds, getAppliedJobIds } from '@/lib/data/jobs'
@@ -29,6 +31,8 @@ import { saveJob, unsaveJob } from '@/lib/data/mutations'
 import ScraperPanel from '@/components/admin/ScraperPanel'
 import JobDetailModal from '@/components/jobs/jobdetailmodal'
 import type { Job } from '@/types/domain'
+
+const PAGE_SIZE = 12
 
 const jobCategories = [
   'All Categories',
@@ -79,6 +83,10 @@ function destinationOf(job: Job) {
 export default function JobsMarketplace() {
   const { user } = useAuth()
   const [jobs, setJobs] = useState<Job[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All Categories')
   const [selectedLocation, setSelectedLocation] = useState('All Locations')
@@ -96,10 +104,10 @@ export default function JobsMarketplace() {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
 
   const isApplicant = user?.role === 'applicant'
-
-  useEffect(() => {
-    getJobs().then(setJobs)
-  }, [])
+  const debouncedSearch = useDebouncedValue(searchQuery, 300)
+  // Only depend on the saved-job set when the "Saved" filter is active, so
+  // liking/unliking a job elsewhere doesn't trigger a refetch of the whole page.
+  const savedIdsKey = showSavedOnly ? Array.from(savedJobs).sort().join(',') : ''
 
   useEffect(() => {
     if (!user?.id) {
@@ -110,6 +118,52 @@ export default function JobsMarketplace() {
     getSavedJobIds(user.id).then(setSavedJobs)
     getAppliedJobIds(user.id).then(setAppliedJobs)
   }, [user?.id])
+
+  const fetchJobs = useCallback(
+    async (offset: number, append: boolean) => {
+      if (showSavedOnly && savedJobs.size === 0) {
+        setJobs([])
+        setTotalCount(0)
+        setHasMore(false)
+        setInitialLoading(false)
+        setLoadingMore(false)
+        return
+      }
+
+      if (append) setLoadingMore(true)
+      else setInitialLoading(true)
+
+      const page = await getJobs({
+        search: debouncedSearch,
+        category: selectedCategory,
+        location: selectedLocation,
+        experience: selectedExp,
+        type: selectedType,
+        sortBy,
+        limit: PAGE_SIZE,
+        offset,
+        savedJobIds: showSavedOnly ? Array.from(savedJobs) : undefined,
+      })
+
+      setJobs(prev => (append ? [...prev, ...page.jobs] : page.jobs))
+      setTotalCount(page.total)
+      setHasMore(page.hasMore)
+      setInitialLoading(false)
+      setLoadingMore(false)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [debouncedSearch, selectedCategory, selectedLocation, selectedExp, selectedType, sortBy, showSavedOnly, savedIdsKey]
+  )
+
+  useEffect(() => {
+    fetchJobs(0, false)
+  }, [fetchJobs])
+
+  const loadMore = useCallback(() => {
+    fetchJobs(jobs.length, true)
+  }, [fetchJobs, jobs.length])
+
+  const sentinelRef = useInfiniteScroll({ hasMore, loading: initialLoading || loadingMore, onLoadMore: loadMore })
 
   const toggleSave = async (jobId: string) => {
     if (!user?.id) return
@@ -150,24 +204,6 @@ export default function JobsMarketplace() {
   function handleApplySuccess(jobId: string) {
     setAppliedJobs(prev => new Set(prev).add(jobId))
   }
-
-  const filteredJobs = jobs.filter(job => {
-    if (showSavedOnly && !savedJobs.has(job.id)) return false
-    const matchesSearch =
-      !searchQuery ||
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      destinationOf(job).toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'All Categories' || job.category === selectedCategory
-    const matchesLocation =
-      selectedLocation === 'All Locations' ||
-      job.location.includes(selectedLocation) ||
-      destinationOf(job).includes(selectedLocation)
-    const matchesExp = selectedExp === 'All Levels' || job.experience === selectedExp
-    const matchesType = selectedType === 'All Types' || job.type === selectedType
-    return matchesSearch && matchesCategory && matchesLocation && matchesExp && matchesType
-  })
 
   const FilterSection = () => (
     <div className="space-y-6">
@@ -402,7 +438,7 @@ export default function JobsMarketplace() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">
-                    {filteredJobs.length} jobs found
+                    {totalCount} jobs found
                   </span>
                   {user && savedJobs.size > 0 && (
                     <button
@@ -433,8 +469,15 @@ export default function JobsMarketplace() {
               </div>
 
               {/* Job Cards */}
+              {initialLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <div key={i} className="h-24 rounded-2xl bg-muted/50 border border-border animate-pulse" />
+                  ))}
+                </div>
+              ) : (
               <div className="space-y-3">
-                {filteredJobs.map((job, i) => {
+                {jobs.map((job, i) => {
                   const applied = appliedJobs.has(job.id)
                   return (
                     <div
@@ -548,9 +591,22 @@ export default function JobsMarketplace() {
                   )
                 })}
               </div>
+              )}
+
+              {/* Infinite scroll sentinel + loading state */}
+              {!initialLoading && hasMore && (
+                <div ref={sentinelRef} className="flex items-center justify-center py-8">
+                  {loadingMore && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading more jobs...
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Empty State */}
-              {filteredJobs.length === 0 && (
+              {!initialLoading && jobs.length === 0 && (
                 <div className="text-center py-20">
                   <Search className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">No jobs found</h3>

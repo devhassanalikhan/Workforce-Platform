@@ -15,6 +15,7 @@ import {
   MapPin,
   BookOpen,
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import { supabase } from '@/lib/supabase'
 
@@ -224,7 +225,13 @@ export default function AiAssistant() {
                         : 'bg-brand-teal/10 text-foreground border border-brand-teal/20'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                    {msg.role === 'assistant' ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-headings:mt-2 prose-headings:mb-1.5 prose-headings:font-semibold prose-headings:text-foreground prose-strong:text-foreground prose-li:my-0.5">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    )}
                     <div
                       className={`text-[10px] mt-2 ${
                         msg.role === 'assistant'

@@ -28,6 +28,8 @@ import AdminTalentDetailModal from '@/components/admin/AdminTalentDetailModal'
 
 type DetailTab = 'jobs' | 'applicants'
 
+const ADMIN_APPLICANTS_LIMIT = 1000
+
 export default function AdminEmployersOverview() {
   const [companies, setCompanies] = useState<AdminCompanyRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,11 +51,13 @@ export default function AdminEmployersOverview() {
     setLoading(true)
     Promise.all([
       getAdminCompanyOverview(),
-      getTalent(true),
+      // Admin overview needs the full applicant roster for its own client-side
+      // search/table (unlike the public Talent Pool, this isn't paginated).
+      getTalent(true, { limit: ADMIN_APPLICANTS_LIMIT, offset: 0 }),
     ])
-      .then(([companiesData, talentsData]) => {
+      .then(([companiesData, talentsPage]) => {
         setCompanies(companiesData)
-        setAllApplicants(talentsData)
+        setAllApplicants(talentsPage.profiles)
       })
       .finally(() => setLoading(false))
   }, [])

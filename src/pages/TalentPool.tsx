@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Search,
   MapPin,
@@ -15,13 +15,18 @@ import {
   CheckCircle2,
   Activity,
   Lock,
+  Loader2,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 import { useAuth } from '@/contexts/AuthContext'
 import { hasRole } from '@/lib/rbac'
 import { getTalent } from '@/lib/data/talent'
 import type { TalentProfile } from '@/types/domain'
 import { STAGE_LABELS, STAGE_COLORS } from '@/lib/pipelineStages'
+
+const PAGE_SIZE = 9
 
 const filters = [
   { label: 'All Skills', count: 12450 },
@@ -43,6 +48,9 @@ const stats = [
 
 export default function TalentPool() {
   const [talents, setTalents] = useState<TalentProfile[]>([])
+  const [hasMore, setHasMore] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [activeFilter, setActiveFilter] = useState('All Skills')
   const [searchQuery, setSearchQuery] = useState('')
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation()
@@ -50,10 +58,36 @@ export default function TalentPool() {
 
   // Employer-tier fields: AI score, pipeline stage, job order details
   const canSeePrivateFields = user !== null && hasRole(user.role, 'employer')
+  const debouncedSearch = useDebouncedValue(searchQuery, 300)
+
+  const fetchTalent = useCallback(
+    async (offset: number, append: boolean) => {
+      if (append) setLoadingMore(true)
+      else setInitialLoading(true)
+
+      const page = await getTalent(canSeePrivateFields, {
+        search: debouncedSearch,
+        limit: PAGE_SIZE,
+        offset,
+      })
+
+      setTalents(prev => (append ? [...prev, ...page.profiles] : page.profiles))
+      setHasMore(page.hasMore)
+      setInitialLoading(false)
+      setLoadingMore(false)
+    },
+    [canSeePrivateFields, debouncedSearch]
+  )
 
   useEffect(() => {
-    getTalent(canSeePrivateFields).then(setTalents)
-  }, [canSeePrivateFields])
+    fetchTalent(0, false)
+  }, [fetchTalent])
+
+  const loadMore = useCallback(() => {
+    fetchTalent(talents.length, true)
+  }, [fetchTalent, talents.length])
+
+  const sentinelRef = useInfiniteScroll({ hasMore, loading: initialLoading || loadingMore, onLoadMore: loadMore })
 
   return (
     <div className="pt-[96px] min-h-screen bg-background">
@@ -155,6 +189,13 @@ export default function TalentPool() {
       {/* ── Talent Grid ───────────────────────────────────────── */}
       <section className="py-10 lg:py-16">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          {initialLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="h-96 rounded-2xl bg-muted/50 border border-border animate-pulse" />
+              ))}
+            </div>
+          ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {talents.map((talent, i) => (
               <div
@@ -351,6 +392,28 @@ export default function TalentPool() {
               </div>
             ))}
           </div>
+          )}
+
+          {/* Infinite scroll sentinel + loading state */}
+          {!initialLoading && hasMore && (
+            <div ref={sentinelRef} className="flex items-center justify-center py-8">
+              {loadingMore && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading more talent...
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!initialLoading && talents.length === 0 && (
+            <div className="text-center py-20">
+              <Search className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No talent found</h3>
+              <p className="text-sm text-muted-foreground">Try a different search.</p>
+            </div>
+          )}
         </div>
       </section>
 
